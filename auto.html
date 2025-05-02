@@ -24,15 +24,17 @@
       --cell-border: #2a3a4a;
       --overlay-bg: rgba(0,0,0,0.8);
     }
-    *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
-    html, body {
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+    html,body{
       width:100%; height:100%;
       font-family:'Inter',sans-serif;
       background:var(--bg-main);
       color:var(--text-light);
       overflow:auto;
+      /* prevent double-tap zoom on iOS and pinches */
+      touch-action: manipulation;
     }
-    body { display:flex; flex-direction:column; }
+    body{display:flex;flex-direction:column;}
 
     /* STICKY HEADER */
     .header {
@@ -50,9 +52,7 @@
       font-size:20px; font-weight:700;
       transition:box-shadow .3s ease;
     }
-    .balance-display.glow {
-      box-shadow:0 0 10px var(--button-green);
-    }
+    .balance-display.glow { box-shadow:0 0 10px var(--button-green); }
     .add-btn {
       background:var(--button-blue); color:#fff; border:none;
       padding:6px 10px; border-radius:4px;
@@ -61,21 +61,15 @@
     .add-menu {
       display:none;
       position:absolute; top:100%; left:50%; transform:translateX(-50%);
-      background:var(--panel-bg);
-      padding:10px; border-radius:4px;
-      box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      margin-top:6px; min-width:200px;
+      background:var(--panel-bg); padding:10px; border-radius:4px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.5); margin-top:6px; min-width:200px;
       gap:8px; flex-wrap:wrap; z-index:1001;
     }
-    .add-menu-title {
-      width:100%; color:var(--text-light);
-      margin-bottom:6px; font-size:14px;
-    }
+    .add-menu-title { width:100%; color:var(--text-light); margin-bottom:6px; font-size:14px; }
     .add-option {
       background:var(--button-green); color:#fff; border:none;
       padding:6px 10px; border-radius:4px;
-      font-size:14px; font-weight:600;
-      flex:1; text-align:center; cursor:pointer;
+      font-size:14px; font-weight:600; flex:1; text-align:center; cursor:pointer;
     }
 
     /* LAYOUT */
@@ -88,25 +82,19 @@
 
     /* MODE TOGGLE */
     .mode-toggle {
-      display:flex;
-      border:1px solid var(--input-bg);
-      border-radius:20px;
-      overflow:hidden;
-      margin-bottom:8px;   /* ↓ reduced spacing here */
+      display:flex; border:1px solid var(--input-bg);
+      border-radius:20px; overflow:hidden; margin-bottom:8px;
     }
     .mode-btn {
-      flex:1; padding:6px 16px;
-      text-align:center; cursor:pointer;
-      background:var(--input-bg);
-      color:var(--text-light);
-      font-weight:600; font-size:14px;
-      user-select:none;
+      flex:1; padding:6px 16px; text-align:center; cursor:pointer;
+      background:var(--input-bg); color:var(--text-light);
+      font-weight:600; font-size:14px; user-select:none;
     }
-    .mode-btn.active {
-      background:var(--button-blue); color:#fff;
-    }
+    .mode-btn.active { background:var(--button-blue); color:#fff; }
 
     /* BET AMOUNT ROW */
+    .control { display:flex; flex-direction:column; gap:6px; }
+    .control label { color:var(--text-secondary); font-size:14px; }
     .bet-row {
       display:flex; align-items:center; gap:4px;
     }
@@ -116,34 +104,23 @@
     .bet-input-wrapper .prefix {
       position:absolute; left:8px; top:50%;
       transform:translateY(-50%);
-      color:var(--text-light);
-      font-size:16px;
+      color:var(--text-light); font-size:16px;
       pointer-events:none;
     }
     .bet-input-wrapper input {
-      width:100%;
-      padding:8px 8px 8px 20px;
-      background:var(--input-bg);
-      border:none; border-radius:4px;
-      color:var(--text-light);
-      font-size:16px;
-      font-weight:600;
+      width:100%; padding:8px 8px 8px 20px;
+      background:var(--input-bg); border:none; border-radius:4px;
+      color:var(--text-light); font-size:16px; font-weight:600;
     }
     .small-btn {
-      padding:8px 12px;
-      background:var(--input-bg);
-      border:none; border-radius:4px;
-      color:var(--text-light);
-      font-weight:600;
-      cursor:pointer;
+      padding:8px 12px; background:var(--input-bg);
+      border:none; border-radius:4px; color:var(--text-light);
+      font-weight:600; cursor:pointer;
     }
 
     /* MINES SELECT */
-    .control { display:flex; flex-direction:column; gap:6px; }
-    .control label { color:var(--text-secondary); font-size:14px; }
     .control select {
-      padding:10px;
-      background:var(--input-bg);
+      padding:10px; background:var(--input-bg);
       border:none; border-radius:4px;
       color:var(--text-light); font-size:16px;
     }
@@ -164,21 +141,15 @@
 
     /* GRID & CELLS */
     .grid {
-      display:grid;
-      grid-template-columns:repeat(5,1fr);
-      gap:8px;
-      background:var(--panel-bg);
-      padding:10px; border-radius:4px;
-      user-select:none;
+      display:grid; grid-template-columns:repeat(5,1fr);
+      gap:8px; background:var(--panel-bg);
+      padding:10px; border-radius:4px; user-select:none;
     }
     .cell {
-      background:var(--input-bg);
-      border:2px solid var(--cell-border);
-      border-radius:4px;
-      width:100%; aspect-ratio:1/1;
-      display:flex; justify-content:center; align-items:center;
-      font-size:clamp(1.5rem,4vw,2.5rem);
-      cursor:pointer;
+      background:var(--input-bg); border:2px solid var(--cell-border);
+      border-radius:4px; width:100%; aspect-ratio:1;
+      display:flex; align-items:center; justify-content:center;
+      font-size:clamp(1.5rem,4vw,2.5rem); cursor:pointer;
       transition:background-color .2s, border-color .2s;
     }
     .cell.disabled { cursor:default; }
@@ -186,7 +157,7 @@
       background:var(--button-blue) !important;
       border-color:var(--button-blue) !important;
     }
-    .pop   { animation:pop .3s ease; }
+    .pop { animation:pop .3s ease; }
     .shine { animation:shineAnim .8s ease-in-out forwards; }
     .explosion { animation:explodeAnim .8s ease forwards; }
     @keyframes pop       { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
@@ -197,9 +168,8 @@
     .overlay {
       position:absolute; top:50%; left:50%;
       transform:translate(-50%,-50%);
-      background:var(--overlay-bg);
-      padding:20px 30px; border-radius:8px;
-      text-align:center; display:none;
+      background:var(--overlay-bg); padding:20px 30px;
+      border-radius:8px; text-align:center; display:none;
       border:2px solid transparent;
     }
     .overlay.win {
@@ -223,7 +193,6 @@
     }
     .notification.win { background:var(--button-green); }
 
-    /* MOBILE */
     @media(max-width:768px){
       body { padding-bottom:env(safe-area-inset-bottom); }
       .main { flex-direction:column; }
@@ -273,8 +242,8 @@
             <span class="prefix">$</span>
             <input type="number" id="betAmount" step="0.01" value="100.00" />
           </div>
-          <button id="half" class="small-btn">½</button>
-          <button id="double" class="small-btn">2×</button>
+          <button id="half"   class="small-btn">½</button>
+          <button id="double"class="small-btn">2×</button>
         </div>
       </div>
 
@@ -319,7 +288,16 @@
         activeRound = false,
         isManual    = true,
         preselected = new Set(),
-        totalCells  = 25;
+        totalCells  = 25,
+        lastTouch   = 0;    // ← for double-tap prevention
+
+    // Prevent pinch-zoom & double-tap on iOS
+    document.addEventListener('gesturestart', e=>e.preventDefault());
+    document.addEventListener('touchend', e=>{
+      let now = Date.now();
+      if (now - lastTouch <= 300) e.preventDefault();
+      lastTouch = now;
+    }, false);
 
     // populate mines dropdown
     for (let i=1; i<=24; i++){
@@ -337,70 +315,68 @@
       setTimeout(()=>balanceEl.classList.remove('glow'),800);
     }
     function animateCount(el, start, end, suffix='x', dur=400){
-      let range = end-start, t0=null;
+      let range = end - start, t0 = null;
       function step(ts){
-        if (!t0) t0=ts;
-        let p = Math.min((ts-t0)/dur,1),
-            v = start + range*p;
-        el.textContent = v.toFixed(2)+suffix;
-        if (p<1) requestAnimationFrame(step);
+        if (!t0) t0 = ts;
+        let p = Math.min((ts - t0)/dur,1),
+            v = start + range * p;
+        el.textContent = v.toFixed(2) + suffix;
+        if (p < 1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
     function showResult(type,mul,amt){
-      overlay.className = 'overlay '+type;
+      overlay.className = 'overlay ' + type;
       if (type==='win'){
         animateCount(multEl,lastMul,mul,'x',400);
-        lastMul=mul;
-        winEl.textContent = '$'+amt.toFixed(2);
+        lastMul = mul;
+        winEl.textContent = '$' + amt.toFixed(2);
       } else {
-        multEl.textContent='';
-        winEl.textContent='-$'+amt.toFixed(2);
-        lastMul=1;
+        multEl.textContent = '';
+        winEl.textContent = '-$' + amt.toFixed(2);
+        lastMul = 1;
       }
-      overlay.style.display='block';
+      overlay.style.display = 'block';
       setTimeout(()=>overlay.style.display='none',1000);
     }
 
     // Add popup
-    addMenu.style.display='none';
+    addMenu.style.display = 'none';
     addBtn.onclick = ()=> addMenu.style.display = addMenu.style.display==='flex'?'none':'flex';
-    addOptions.forEach(b=> b.onclick=()=>{
+    addOptions.forEach(b=> b.onclick = ()=>{
       balance += +b.dataset.amt;
       updateBalance(balance);
     });
 
-    // reset board helper
     function resetBoard(){
       preselected.clear();
-      revealed=0; currentMul=lastMul=1;
-      overlay.style.display='none';
-      cashBtn.style.display='none';
+      revealed = 0; currentMul = lastMul = 1;
+      overlay.style.display = 'none';
+      cashBtn.style.display = 'none';
       createGrid(); setupMines();
     }
 
-    // mode toggle
     manualBtn.onclick = ()=>{
-      if (activeRound) return;
-      isManual=true;
+      if(activeRound) return;
+      isManual = true;
       manualBtn.classList.add('active');
       autoBtn.classList.remove('active');
       resetBoard();
     };
     autoBtn.onclick = ()=>{
-      if (activeRound) return;
-      isManual=false;
+      if(activeRound) return;
+      isManual = false;
       autoBtn.classList.add('active');
       manualBtn.classList.remove('active');
       resetBoard();
     };
 
-    // grid setup
     function createGrid(){
-      gridEl.innerHTML=''; cells=[];
+      gridEl.innerHTML = '';
+      cells = [];
       for (let i=0; i<totalCells; i++){
         let c = document.createElement('div');
-        c.className='cell';
+        c.className = 'cell';
         c.dataset.idx = i;
         c.onclick = e=>{
           if (!activeRound && !isManual){
@@ -446,44 +422,42 @@
       });
     }
 
-    // manual click
     function onCellClick(e){
-      const c = e.currentTarget, idx=+c.dataset.idx;
+      let c = e.currentTarget, idx = +c.dataset.idx;
       if (c.classList.contains('disabled')) return;
       c.classList.add('disabled','pop');
       c.addEventListener('animationend',()=>c.classList.remove('pop'),{once:true});
       if (mines.has(idx)){
-        activeRound=false;
-        c.textContent='💣';
+        activeRound = false;
+        c.textContent = '💣';
         c.classList.add('explosion');
         setTimeout(()=>c.classList.remove('explosion'),800);
         revealAll();
         showResult('loss',0,roundBet);
         updateBalance(baseBalance);
-        betBtn.disabled=false;
-        betAmtInput.disabled=false;
-        minesSel.disabled=false;
-        cashBtn.style.display='none';
+        betBtn.disabled = false;
+        betAmtInput.disabled = false;
+        minesSel.disabled    = false;
+        cashBtn.style.display = 'none';
       } else {
         revealed++;
-        c.textContent='💎';
+        c.textContent = '💎';
         c.classList.add('shine');
         setTimeout(()=>c.classList.remove('shine'),800);
-        chaChing.currentTime=0; chaChing.play();
+        chaChing.currentTime = 0; chaChing.play();
         confetti({particleCount:100,spread:60,origin:{y:0.2}});
         let m = +minesSel.value;
-        let factor = (totalCells-(revealed-1))/(totalCells-m-(revealed-1));
+        let factor = (totalCells - (revealed-1)) / (totalCells - m - (revealed-1));
         currentMul *= factor;
-        let pot = roundBet*currentMul;
+        let pot = roundBet * currentMul;
         updateBalance(baseBalance+pot);
         glowBalance();
         showResult('win',currentMul,pot);
-        cashBtn.style.display='block';
-        cashBtn.textContent='Cash Out +$'+pot.toFixed(2);
+        cashBtn.style.display = 'block';
+        cashBtn.textContent = 'Cash Out +$' + pot.toFixed(2);
       }
     }
 
-    // Bet button
     betBtn.onclick = ()=>{
       if (activeRound) return;
       let bet = parseFloat(betAmtInput.value)||0;
@@ -493,37 +467,37 @@
         alert('Select at least one tile in Auto mode');
         return;
       }
-      roundBet=bet;
-      balance-=bet;
-      baseBalance=balance;
+      roundBet = bet;
+      balance -= bet;
+      baseBalance = balance;
       updateBalance(balance);
-      activeRound=true;
-      revealed=0; currentMul=lastMul=1;
-      betBtn.disabled=true;
-      betAmtInput.disabled=true;
-      minesSel.disabled=true;
-      cashBtn.style.display='none';
+      activeRound = true;
+      revealed = 0; currentMul = lastMul = 1;
+      betBtn.disabled = true;
+      betAmtInput.disabled = true;
+      minesSel.disabled = true;
+      cashBtn.style.display = 'none';
       createGrid(); setupMines();
 
       if (!isManual){
-        // auto flow
+        // auto
         let lose=false, mul=1, i=0;
         preselected.forEach(idx=>{
-          let c=cells[idx];
+          let c = cells[idx];
           if (!c.classList.contains('disabled')){
             c.classList.add('disabled');
             if (mines.has(idx)){
-              lose=true;
-              c.textContent='💣';
+              lose = true;
+              c.textContent = '💣';
               c.classList.add('explosion');
               setTimeout(()=>c.classList.remove('explosion'),800);
             } else {
-              c.textContent='💎';
+              c.textContent = '💎';
               c.classList.add('shine');
               setTimeout(()=>c.classList.remove('shine'),800);
-              let m=+minesSel.value;
-              let f=(totalCells-i)/(totalCells-m-i);
-              mul*=f; i++;
+              let m = +minesSel.value;
+              let f = (totalCells - i) / (totalCells - m - i);
+              mul *= f; i++;
             }
           }
         });
@@ -531,8 +505,8 @@
           showResult('loss',0,roundBet);
           updateBalance(baseBalance);
         } else {
-          let winAmt=roundBet*mul;
-          balance+=winAmt;
+          let winAmt = roundBet * mul;
+          balance += winAmt;
           updateBalance(balance);
           glowBalance();
           showResult('win',mul,winAmt);
@@ -549,13 +523,12 @@
       }
     };
 
-    // Cash out manual
     cashBtn.onclick = ()=>{
       if (!activeRound) return;
       activeRound=false;
       revealAll();
-      let winAmt = roundBet*currentMul;
-      balance+=winAmt;
+      let winAmt = roundBet * currentMul;
+      balance += winAmt;
       updateBalance(balance);
       showResult('win',currentMul,winAmt);
       betBtn.disabled=false;
@@ -564,17 +537,16 @@
       cashBtn.style.display='none';
     };
 
-    // ½ / 2× shortcuts
     document.getElementById('half').onclick = ()=>{
-      let v=parseFloat(betAmtInput.value)||0;
+      let v = parseFloat(betAmtInput.value)||0;
       betAmtInput.value = (v/2).toFixed(2);
     };
     document.getElementById('double').onclick = ()=>{
-      let v=parseFloat(betAmtInput.value)||0;
+      let v = parseFloat(betAmtInput.value)||0;
       betAmtInput.value = (v*2).toFixed(2);
     };
 
-    // initialize
+    // init
     createGrid();
     setupMines();
     updateBalance(balance);
