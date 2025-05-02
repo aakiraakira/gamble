@@ -33,13 +33,13 @@
     }
     body{display:flex;flex-direction:column;}
 
-    /* HEADER */
+    /* HEADER now centers balance */
     .header{
       background:var(--panel-bg);
       padding:12px 20px;
       display:flex;
       align-items:center;
-      justify-content:flex-end;
+      justify-content:center;    /* ← centered */
       position:relative;
     }
     .balance-add{
@@ -111,7 +111,7 @@
       gap:12px;
     }
 
-    /* MODE TOGGLE (moved to sidebar) */
+    /* MODE TOGGLE in sidebar */
     .mode-toggle{
       display:flex;
       border:1px solid var(--input-bg);
@@ -266,8 +266,8 @@
         <div class="win"  id="overlayWin">$0.00</div>
       </div>
     </div>
+
     <div class="sidebar">
-      <!-- Moved here: Manual/Auto toggle -->
       <div class="mode-toggle">
         <div id="manualBtn" class="mode-btn active">Manual</div>
         <div id="autoBtn"   class="mode-btn">Auto</div>
