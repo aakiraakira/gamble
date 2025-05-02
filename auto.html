@@ -92,7 +92,7 @@
       border:1px solid var(--input-bg);
       border-radius:20px;
       overflow:hidden;
-      margin-bottom:16px;
+      margin-bottom:8px;   /* ↓ reduced spacing here */
     }
     .mode-btn {
       flex:1; padding:6px 16px;
@@ -111,8 +111,7 @@
       display:flex; align-items:center; gap:4px;
     }
     .bet-input-wrapper {
-      position:relative;
-      flex:1;
+      position:relative; flex:1;
     }
     .bet-input-wrapper .prefix {
       position:absolute; left:8px; top:50%;
@@ -139,7 +138,7 @@
       cursor:pointer;
     }
 
-    /* REMAINING CONTROLS */
+    /* MINES SELECT */
     .control { display:flex; flex-direction:column; gap:6px; }
     .control label { color:var(--text-secondary); font-size:14px; }
     .control select {
@@ -149,10 +148,8 @@
       color:var(--text-light); font-size:16px;
     }
 
-    .button-row {
-      display:flex; gap:8px;
-      margin-top:16px;
-    }
+    /* ACTION BUTTONS */
+    .button-row { display:flex; gap:8px; margin-top:16px; }
     #betBtn, #cashOutBtn {
       flex:1; padding:12px; font-size:16px;
       border:none; border-radius:4px;
@@ -236,7 +233,6 @@
         padding:10px 20px;
       }
     }
-
   </style>
 </head>
 <body>
@@ -548,7 +544,7 @@
           betBtn.disabled=false;
           betAmtInput.disabled=false;
           minesSel.disabled=false;
-          betBtn.textContent='Bet';
+          betBtn.textContent='Bet Again';
         },1500);
       }
     };
