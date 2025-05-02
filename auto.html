@@ -26,236 +26,183 @@
     }
     *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
     html, body {
-      width:100%; min-height:100%;
+      width:100%; height:100%;
       font-family:'Inter',sans-serif;
       background:var(--bg-main);
       color:var(--text-light);
-      /* allow vertical scrolling, hide horizontal */
-      overflow-x:hidden;
-      overflow-y:auto;
-      /* iOS safe-area at bottom */
-      padding-bottom: env(safe-area-inset-bottom);
+      overflow:auto;
     }
     body { display:flex; flex-direction:column; }
 
-    /* ---- STICKY HEADER ---- */
+    /* STICKY HEADER */
     .header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      background: var(--panel-bg);
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position:sticky; top:0; z-index:1000;
+      background:var(--panel-bg);
+      padding:12px 20px;
+      display:flex; justify-content:center; align-items:center;
     }
-    .balance-add {
-      display:flex; align-items:center; gap:8px;
-    }
-    .balance-label {
-      color: var(--text-secondary);
-      font-size: 14px;
-    }
+    .balance-add { display:flex; align-items:center; gap:8px; }
+    .balance-label { color:var(--text-secondary); font-size:14px; }
     .balance-display {
-      background: var(--input-bg);
-      padding: 6px 10px;
-      border-radius: 4px;
-      font-size: 20px;
-      font-weight: 700;
-      transition: box-shadow .3s ease;
-    }
-    .balance-display.glow {
-      box-shadow: 0 0 10px var(--button-green);
-    }
-    .add-btn {
-      background:var(--button-blue);
-      color:#fff;
-      border:none;
+      background:var(--input-bg);
       padding:6px 10px;
       border-radius:4px;
-      font-size:16px;
-      font-weight:600;
-      cursor:pointer;
+      font-size:20px; font-weight:700;
+      transition:box-shadow .3s ease;
+    }
+    .balance-display.glow {
+      box-shadow:0 0 10px var(--button-green);
+    }
+    .add-btn {
+      background:var(--button-blue); color:#fff; border:none;
+      padding:6px 10px; border-radius:4px;
+      font-size:16px; font-weight:600; cursor:pointer;
     }
     .add-menu {
       display:none;
-      position:absolute;
-      top:100%; left:50%;
-      transform: translateX(-50%);
-      background: var(--panel-bg);
-      padding:10px;
-      border-radius:4px;
+      position:absolute; top:100%; left:50%; transform:translateX(-50%);
+      background:var(--panel-bg);
+      padding:10px; border-radius:4px;
       box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      margin-top:6px;
-      min-width:200px;
-      gap:8px;
-      flex-wrap:wrap;
-      z-index:1000;
+      margin-top:6px; min-width:200px;
+      gap:8px; flex-wrap:wrap; z-index:1001;
     }
     .add-menu-title {
-      width:100%;
-      color:var(--text-light);
-      margin-bottom:6px;
-      font-size:14px;
+      width:100%; color:var(--text-light);
+      margin-bottom:6px; font-size:14px;
     }
     .add-option {
-      background:var(--button-green);
-      color:#fff;
-      border:none;
-      padding:6px 10px;
-      border-radius:4px;
-      font-size:14px;
-      font-weight:600;
-      flex:1;
-      text-align:center;
-      cursor:pointer;
+      background:var(--button-green); color:#fff; border:none;
+      padding:6px 10px; border-radius:4px;
+      font-size:14px; font-weight:600;
+      flex:1; text-align:center; cursor:pointer;
     }
 
-    /* ---- LAYOUT ---- */
-    .main {
-      flex:1;
-      display:flex;
-      overflow-y:auto;
-    }
-    .game {
-      flex:1;
-      padding:20px;
-      position:relative;
-    }
+    /* LAYOUT */
+    .main { flex:1; display:flex; padding-bottom:40px; }
+    .game { flex:1; padding:20px; position:relative; }
     .sidebar {
-      width:280px;
-      background:var(--panel-bg);
-      padding:20px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+      width:280px; background:var(--panel-bg);
+      padding:20px; display:flex; flex-direction:column; gap:12px;
     }
 
-    /* ---- MODE TOGGLE ---- */
+    /* MODE TOGGLE */
     .mode-toggle {
       display:flex;
       border:1px solid var(--input-bg);
       border-radius:20px;
       overflow:hidden;
-      margin-bottom:8px; /* slightly reduced */
+      margin-bottom:16px;
     }
     .mode-btn {
-      flex:1;
-      padding:6px 16px;
-      cursor:pointer;
+      flex:1; padding:6px 16px;
+      text-align:center; cursor:pointer;
       background:var(--input-bg);
       color:var(--text-light);
-      font-weight:600;
-      font-size:14px;
-      text-align:center;
+      font-weight:600; font-size:14px;
       user-select:none;
     }
     .mode-btn.active {
-      background:var(--button-blue);
-      color:#fff;
+      background:var(--button-blue); color:#fff;
     }
 
-    /* ---- CONTROLS ---- */
-    .control {
-      display:flex;
-      flex-direction:column;
-      gap:6px;
+    /* BET AMOUNT ROW */
+    .bet-row {
+      display:flex; align-items:center; gap:4px;
     }
-    .control label {
-      color:var(--text-secondary);
-      font-size:14px;
+    .bet-input-wrapper {
+      position:relative;
+      flex:1;
     }
-    .control input,
+    .bet-input-wrapper .prefix {
+      position:absolute; left:8px; top:50%;
+      transform:translateY(-50%);
+      color:var(--text-light);
+      font-size:16px;
+      pointer-events:none;
+    }
+    .bet-input-wrapper input {
+      width:100%;
+      padding:8px 8px 8px 20px;
+      background:var(--input-bg);
+      border:none; border-radius:4px;
+      color:var(--text-light);
+      font-size:16px;
+      font-weight:600;
+    }
+    .small-btn {
+      padding:8px 12px;
+      background:var(--input-bg);
+      border:none; border-radius:4px;
+      color:var(--text-light);
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    /* REMAINING CONTROLS */
+    .control { display:flex; flex-direction:column; gap:6px; }
+    .control label { color:var(--text-secondary); font-size:14px; }
     .control select {
       padding:10px;
       background:var(--input-bg);
-      border:none;
-      border-radius:4px;
-      color:var(--text-light);
-      font-size:16px;
+      border:none; border-radius:4px;
+      color:var(--text-light); font-size:16px;
     }
-    .extras {
-      display:flex;
-      gap:8px;
-    }
-    .extras button {
-      flex:1;
-      padding:6px;
-      background:var(--input-bg);
-      border:none;
-      border-radius:4px;
-      color:var(--text-light);
-      font-weight:600;
-      cursor:pointer;
-    }
+
     .button-row {
-      display:flex;
-      gap:8px;
-      margin-top:8px;
+      display:flex; gap:8px;
+      margin-top:16px;
     }
     #betBtn, #cashOutBtn {
-      flex:1;
-      padding:12px;
-      font-size:16px;
-      border:none;
-      border-radius:4px;
-      cursor:pointer;
-      font-weight:600;
+      flex:1; padding:12px; font-size:16px;
+      border:none; border-radius:4px;
+      cursor:pointer; font-weight:600;
     }
-    #betBtn {
-      background:var(--button-blue);
-      color:#fff;
-    }
+    #betBtn { background:var(--button-blue); color:#fff; }
     #cashOutBtn {
-      background:var(--button-green);
-      color:#fff;
+      background:var(--button-green); color:#fff;
       box-shadow:0 0 8px var(--button-green);
       display:none;
     }
 
-    /* ---- GRID & CELLS ---- */
+    /* GRID & CELLS */
     .grid {
       display:grid;
       grid-template-columns:repeat(5,1fr);
-      gap:5px;
+      gap:8px;
       background:var(--panel-bg);
-      padding:10px;
-      border-radius:4px;
+      padding:10px; border-radius:4px;
       user-select:none;
     }
     .cell {
       background:var(--input-bg);
       border:2px solid var(--cell-border);
       border-radius:4px;
-      width:64px; height:64px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:28px;
+      width:100%; aspect-ratio:1/1;
+      display:flex; justify-content:center; align-items:center;
+      font-size:clamp(1.5rem,4vw,2.5rem);
       cursor:pointer;
-      transition:background-color .2s;
+      transition:background-color .2s, border-color .2s;
     }
-    .cell.disabled { cursor: default; }
+    .cell.disabled { cursor:default; }
     .cell.pre {
-      background: var(--button-blue);
+      background:var(--button-blue) !important;
+      border-color:var(--button-blue) !important;
     }
     .pop   { animation:pop .3s ease; }
     .shine { animation:shineAnim .8s ease-in-out forwards; }
     .explosion { animation:explodeAnim .8s ease forwards; }
     @keyframes pop       { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
     @keyframes shineAnim { 0%,100%{box-shadow:0 0 5px var(--button-green);} 50%{box-shadow:0 0 15px var(--button-green);} }
-    @keyframes explodeAnim { 0%{transform:scale(1);opacity:1;} 50%{transform:scale(1.5);opacity:0.8;}100%{transform:scale(0);opacity:0;} }
+    @keyframes explodeAnim { 0%{transform:scale(1);opacity:1;} 50%{transform:scale(1.5);opacity:0.8;} 100%{transform:scale(0);opacity:0;} }
 
-    /* ---- RESULT OVERLAY ---- */
+    /* OVERLAY */
     .overlay {
-      position:absolute;
-      top:50%; left:50%;
+      position:absolute; top:50%; left:50%;
       transform:translate(-50%,-50%);
       background:var(--overlay-bg);
-      padding:20px 30px;
-      border-radius:8px;
-      text-align:center;
-      display:none;
+      padding:20px 30px; border-radius:8px;
+      text-align:center; display:none;
       border:2px solid transparent;
     }
     .overlay.win {
@@ -266,50 +213,30 @@
       border-color:var(--button-cash);
       box-shadow:0 0 12px var(--button-cash);
     }
-    .overlay .mult {
-      font-size:32px;
-      font-weight:700;
-      color:#fff;
-    }
-    .overlay .win {
-      font-size:18px;
-      margin-top:8px;
-      color:#fff;
-    }
+    .overlay .mult { font-size:32px; font-weight:700; color:#fff; }
+    .overlay .win  { font-size:18px; margin-top:8px; color:#fff; }
 
-    /* ---- NOTIFICATION ---- */
+    /* NOTIFICATION */
     .notification {
-      position:absolute;
-      top:40%; left:50%;
+      position:absolute; top:40%; left:50%;
       transform:translate(-50%,-50%);
-      background:var(--button-cash);
-      color:#fff;
-      padding:20px 40px;
-      border-radius:8px;
-      font-size:24px;
-      display:none;
-      z-index:10;
+      background:var(--button-cash); color:#fff;
+      padding:20px 40px; border-radius:8px;
+      font-size:24px; display:none;
     }
-    .notification.win {
-      background:var(--button-green);
+    .notification.win { background:var(--button-green); }
+
+    /* MOBILE */
+    @media(max-width:768px){
+      body { padding-bottom:env(safe-area-inset-bottom); }
+      .main { flex-direction:column; }
+      .game { padding:20px 15px; }
+      .sidebar {
+        position:static; width:100%;
+        padding:10px 20px;
+      }
     }
 
-    /* ---- RESPONSIVE ---- */
-    @media(max-width:768px){
-      body {
-        /* keep scrollable */
-      }
-      .main {
-        flex-direction:column;
-      }
-      .game {
-        padding:20px 15px;
-      }
-      .sidebar {
-        width:100%;
-        margin-top:20px;   /* extra spacing under the grid */
-      }
-    }
   </style>
 </head>
 <body>
@@ -337,7 +264,6 @@
       </div>
       <div class="notification" id="notification"></div>
     </div>
-
     <div class="sidebar">
       <div class="mode-toggle">
         <div id="manualBtn" class="mode-btn active">Manual</div>
@@ -345,17 +271,22 @@
       </div>
 
       <div class="control">
-        <label>Bet Amount ($)</label>
-        <input type="number" id="betAmount" step="0.01" value="100.00" />
+        <label>Bet Amount</label>
+        <div class="bet-row">
+          <div class="bet-input-wrapper">
+            <span class="prefix">$</span>
+            <input type="number" id="betAmount" step="0.01" value="100.00" />
+          </div>
+          <button id="half" class="small-btn">½</button>
+          <button id="double" class="small-btn">2×</button>
+        </div>
       </div>
-      <div class="extras">
-        <button id="half">½</button>
-        <button id="double">2×</button>
-      </div>
+
       <div class="control">
         <label>Mines</label>
         <select id="mines"></select>
       </div>
+
       <div class="button-row">
         <button id="betBtn">Bet</button>
         <button id="cashOutBtn">Cash Out</button>
@@ -368,7 +299,7 @@
           overlay     = document.getElementById('overlay'),
           multEl      = document.getElementById('overlayMult'),
           winEl       = document.getElementById('overlayWin'),
-          notification= document.getElementById('notification'),
+          notif       = document.getElementById('notification'),
           betBtn      = document.getElementById('betBtn'),
           cashBtn     = document.getElementById('cashOutBtn'),
           addBtn      = document.getElementById('addMoneyBtn'),
@@ -394,38 +325,38 @@
         preselected = new Set(),
         totalCells  = 25;
 
-    // Populate mines dropdown
-    for(let i=1;i<=24;i++){
-      const o=document.createElement('option');
-      o.value=i; o.textContent=i;
-      if(i===3) o.selected=true;
+    // populate mines dropdown
+    for (let i=1; i<=24; i++){
+      let o = document.createElement('option');
+      o.value = i; o.textContent = i;
+      if (i===3) o.selected = true;
       minesSel.append(o);
     }
 
     function updateBalance(v){
-      balanceEl.textContent='$'+v.toFixed(2);
+      balanceEl.textContent = '$' + v.toFixed(2);
     }
     function glowBalance(){
       balanceEl.classList.add('glow');
       setTimeout(()=>balanceEl.classList.remove('glow'),800);
     }
-    function animateCount(el,s,e,suf='x',dur=400){
-      const r=e-s; let t0=null;
+    function animateCount(el, start, end, suffix='x', dur=400){
+      let range = end-start, t0=null;
       function step(ts){
-        if(!t0)t0=ts;
-        const p=Math.min((ts-t0)/dur,1),
-              v=s+r*p;
-        el.textContent=v.toFixed(2)+suf;
-        if(p<1) requestAnimationFrame(step);
+        if (!t0) t0=ts;
+        let p = Math.min((ts-t0)/dur,1),
+            v = start + range*p;
+        el.textContent = v.toFixed(2)+suffix;
+        if (p<1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
     function showResult(type,mul,amt){
-      overlay.className='overlay '+type;
-      if(type==='win'){
+      overlay.className = 'overlay '+type;
+      if (type==='win'){
         animateCount(multEl,lastMul,mul,'x',400);
         lastMul=mul;
-        winEl.textContent='$'+amt.toFixed(2);
+        winEl.textContent = '$'+amt.toFixed(2);
       } else {
         multEl.textContent='';
         winEl.textContent='-$'+amt.toFixed(2);
@@ -435,14 +366,15 @@
       setTimeout(()=>overlay.style.display='none',1000);
     }
 
-    // Add‐money popup
+    // Add popup
     addMenu.style.display='none';
-    addBtn.onclick=()=>addMenu.style.display=addMenu.style.display==='flex'?'none':'flex';
-    addOptions.forEach(b=>b.onclick=()=>{
-      balance+=+b.dataset.amt; updateBalance(balance);
+    addBtn.onclick = ()=> addMenu.style.display = addMenu.style.display==='flex'?'none':'flex';
+    addOptions.forEach(b=> b.onclick=()=>{
+      balance += +b.dataset.amt;
+      updateBalance(balance);
     });
 
-    // Mode toggle & reset
+    // reset board helper
     function resetBoard(){
       preselected.clear();
       revealed=0; currentMul=lastMul=1;
@@ -450,31 +382,34 @@
       cashBtn.style.display='none';
       createGrid(); setupMines();
     }
-    manualBtn.onclick=()=>{
-      if(activeRound) return;
+
+    // mode toggle
+    manualBtn.onclick = ()=>{
+      if (activeRound) return;
       isManual=true;
       manualBtn.classList.add('active');
       autoBtn.classList.remove('active');
       resetBoard();
     };
-    autoBtn.onclick=()=>{
-      if(activeRound) return;
+    autoBtn.onclick = ()=>{
+      if (activeRound) return;
       isManual=false;
       autoBtn.classList.add('active');
       manualBtn.classList.remove('active');
       resetBoard();
     };
 
-    // Grid & mines
+    // grid setup
     function createGrid(){
       gridEl.innerHTML=''; cells=[];
-      for(let i=0;i<totalCells;i++){
-        let c=document.createElement('div');
-        c.className='cell'; c.dataset.idx=i;
-        c.onclick=e=>{
-          if(!activeRound && !isManual){
-            let idx=+c.dataset.idx;
-            if(preselected.has(idx)){
+      for (let i=0; i<totalCells; i++){
+        let c = document.createElement('div');
+        c.className='cell';
+        c.dataset.idx = i;
+        c.onclick = e=>{
+          if (!activeRound && !isManual){
+            let idx = +c.dataset.idx;
+            if (preselected.has(idx)){
               preselected.delete(idx);
               c.classList.remove('pre');
             } else {
@@ -483,7 +418,7 @@
             }
             return;
           }
-          if(activeRound && isManual){
+          if (activeRound && isManual){
             onCellClick(e);
           }
         };
@@ -493,16 +428,18 @@
     }
     function setupMines(){
       mines.clear();
-      let m=+minesSel.value;
-      while(mines.size<m) mines.add(Math.floor(Math.random()*totalCells));
+      let m = +minesSel.value;
+      while(mines.size < m){
+        mines.add(Math.floor(Math.random()*totalCells));
+      }
     }
     function revealAll(){
       cells.forEach(c=>{
-        let idx=+c.dataset.idx;
-        if(!c.classList.contains('disabled')){
+        let idx = +c.dataset.idx;
+        if (!c.classList.contains('disabled')){
           c.classList.add('disabled');
-          c.textContent=mines.has(idx)?'💣':'💎';
-          if(mines.has(idx)){
+          c.textContent = mines.has(idx)?'💣':'💎';
+          if (mines.has(idx)){
             c.classList.add('explosion');
             setTimeout(()=>c.classList.remove('explosion'),800);
           } else {
@@ -513,13 +450,13 @@
       });
     }
 
-    // Manual reveal
+    // manual click
     function onCellClick(e){
-      let c=e.currentTarget, idx=+c.dataset.idx;
-      if(c.classList.contains('disabled')) return;
+      const c = e.currentTarget, idx=+c.dataset.idx;
+      if (c.classList.contains('disabled')) return;
       c.classList.add('disabled','pop');
       c.addEventListener('animationend',()=>c.classList.remove('pop'),{once:true});
-      if(mines.has(idx)){
+      if (mines.has(idx)){
         activeRound=false;
         c.textContent='💣';
         c.classList.add('explosion');
@@ -538,10 +475,10 @@
         setTimeout(()=>c.classList.remove('shine'),800);
         chaChing.currentTime=0; chaChing.play();
         confetti({particleCount:100,spread:60,origin:{y:0.2}});
-        let m=+minesSel.value;
-        let factor=(totalCells-(revealed-1))/(totalCells-m-(revealed-1));
-        currentMul*=factor;
-        let pot=roundBet*currentMul;
+        let m = +minesSel.value;
+        let factor = (totalCells-(revealed-1))/(totalCells-m-(revealed-1));
+        currentMul *= factor;
+        let pot = roundBet*currentMul;
         updateBalance(baseBalance+pot);
         glowBalance();
         showResult('win',currentMul,pot);
@@ -550,13 +487,13 @@
       }
     }
 
-    // Bet
-    betBtn.onclick=()=>{
-      if(activeRound) return;
-      let bet=parseFloat(betAmtInput.value)||0;
-      if(bet<=0){alert('Bet must be > $0');return;}
-      if(bet>balance){alert('Not enough funds');return;}
-      if(!isManual && preselected.size===0){
+    // Bet button
+    betBtn.onclick = ()=>{
+      if (activeRound) return;
+      let bet = parseFloat(betAmtInput.value)||0;
+      if (bet<=0){ alert('Bet must be > $0'); return; }
+      if (bet>balance){ alert('Not enough funds'); return; }
+      if (!isManual && preselected.size===0){
         alert('Select at least one tile in Auto mode');
         return;
       }
@@ -572,14 +509,14 @@
       cashBtn.style.display='none';
       createGrid(); setupMines();
 
-      if(!isManual){
-        // Auto
-        let lose=false, mul=1, count=0;
+      if (!isManual){
+        // auto flow
+        let lose=false, mul=1, i=0;
         preselected.forEach(idx=>{
           let c=cells[idx];
-          if(!c.classList.contains('disabled')){
+          if (!c.classList.contains('disabled')){
             c.classList.add('disabled');
-            if(mines.has(idx)){
+            if (mines.has(idx)){
               lose=true;
               c.textContent='💣';
               c.classList.add('explosion');
@@ -589,13 +526,12 @@
               c.classList.add('shine');
               setTimeout(()=>c.classList.remove('shine'),800);
               let m=+minesSel.value;
-              let factor=(totalCells-count)/(totalCells-m-count);
-              mul*=factor;
-              count++;
+              let f=(totalCells-i)/(totalCells-m-i);
+              mul*=f; i++;
             }
           }
         });
-        if(lose){
+        if (lose){
           showResult('loss',0,roundBet);
           updateBalance(baseBalance);
         } else {
@@ -617,12 +553,12 @@
       }
     };
 
-    // Cash Out (manual)
-    cashBtn.onclick=()=>{
-      if(!activeRound) return;
+    // Cash out manual
+    cashBtn.onclick = ()=>{
+      if (!activeRound) return;
       activeRound=false;
       revealAll();
-      let winAmt=roundBet*currentMul;
+      let winAmt = roundBet*currentMul;
       balance+=winAmt;
       updateBalance(balance);
       showResult('win',currentMul,winAmt);
@@ -632,17 +568,17 @@
       cashBtn.style.display='none';
     };
 
-    // Half / Double shortcuts
-    document.getElementById('half').onclick=()=>{
+    // ½ / 2× shortcuts
+    document.getElementById('half').onclick = ()=>{
       let v=parseFloat(betAmtInput.value)||0;
-      betAmtInput.value=(v/2).toFixed(2);
+      betAmtInput.value = (v/2).toFixed(2);
     };
-    document.getElementById('double').onclick=()=>{
+    document.getElementById('double').onclick = ()=>{
       let v=parseFloat(betAmtInput.value)||0;
-      betAmtInput.value=(v*2).toFixed(2);
+      betAmtInput.value = (v*2).toFixed(2);
     };
 
-    // Initialize
+    // initialize
     createGrid();
     setupMines();
     updateBalance(balance);
