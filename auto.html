@@ -24,193 +24,187 @@
       --cell-border: #2a3a4a;
       --overlay-bg: rgba(0,0,0,0.8);
     }
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
-    html,body{
-      width:100%;height:100%;
+    *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+    html, body {
+      width:100%; height:100%;
       font-family:'Inter',sans-serif;
-      background:var(--bg-main);color:var(--text-light);
-      overflow:hidden;overscroll-behavior:none;
+      background:var(--bg-main);
+      color:var(--text-light);
+      overflow:auto;                   /* ← allow scrolling */
+      overscroll-behavior:none;
     }
-    body{display:flex;flex-direction:column;}
+    body { display:flex; flex-direction:column; }
 
-    /* HEADER now centers balance */
-    .header{
+    /* HEADER */
+    .header {
       background:var(--panel-bg);
       padding:12px 20px;
-      display:flex;
-      align-items:center;
-      justify-content:center;    /* ← centered */
+      display:flex; justify-content:center; align-items:center;
       position:relative;
     }
-    .balance-add{
-      display:flex;align-items:center;gap:8px;
-    }
-    .balance-label{
-      color:var(--text-secondary);
-      font-size:14px;
-    }
-    .balance-display{
+    .balance-add { display:flex; align-items:center; gap:8px; }
+    .balance-label { color:var(--text-secondary); font-size:14px; }
+    .balance-display {
       background:var(--input-bg);
       padding:6px 10px;
       border-radius:4px;
-      font-size:20px;
-      font-weight:700;
+      font-size:20px; font-weight:700;
       transition:box-shadow .3s ease;
     }
-    .balance-display.glow{
+    .balance-display.glow {
       box-shadow:0 0 10px var(--button-green);
     }
-    .add-btn{
-      background:var(--button-blue);
-      color:#fff;
-      border:none;
-      padding:6px 10px;
-      border-radius:4px;
-      font-size:16px;
-      font-weight:600;
-      cursor:pointer;
+    .add-btn {
+      background:var(--button-blue); color:#fff; border:none;
+      padding:6px 10px; border-radius:4px;
+      font-size:16px; font-weight:600; cursor:pointer;
     }
-    .add-menu{
+    .add-menu {
       display:none;
-      position:absolute;top:100%;left:50%;
-      transform:translateX(-50%);
+      position:absolute; top:100%; left:50%; transform:translateX(-50%);
       background:var(--panel-bg);
-      padding:10px;border-radius:4px;
+      padding:10px; border-radius:4px;
       box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      margin-top:6px;min-width:200px;
-      gap:8px;flex-wrap:wrap;z-index:1000;
+      margin-top:6px; min-width:200px;
+      gap:8px; flex-wrap:wrap; z-index:1000;
     }
-    .add-menu-title{
-      width:100%;
-      color:var(--text-light);
-      margin-bottom:6px;
-      font-size:14px;
+    .add-menu-title {
+      width:100%; color:var(--text-light);
+      margin-bottom:6px; font-size:14px;
     }
-    .add-option{
-      background:var(--button-green);
-      color:#fff;
-      border:none;
-      padding:6px 10px;
-      border-radius:4px;
-      font-size:14px;
-      font-weight:600;
-      flex:1;
-      text-align:center;
-      cursor:pointer;
+    .add-option {
+      background:var(--button-green); color:#fff; border:none;
+      padding:6px 10px; border-radius:4px;
+      font-size:14px; font-weight:600;
+      flex:1; text-align:center; cursor:pointer;
     }
 
-    /* LAYOUT */
-    .main{flex:1;display:flex;}
-    .game{flex:1;padding:20px;position:relative;}
-    .sidebar{
+    /* MAIN LAYOUT */
+    .main {
+      flex:1;
+      display:flex;
+      padding-bottom:40px;       /* extra space under grid */
+    }
+    .game {
+      flex:1;
+      padding:20px;
+      position:relative;
+    }
+    .sidebar {
       width:280px;
       background:var(--panel-bg);
       padding:20px;
-      display:flex;
-      flex-direction:column;
-      gap:12px;
+      display:flex; flex-direction:column; gap:12px;
     }
 
-    /* MODE TOGGLE in sidebar */
-    .mode-toggle{
+    /* MODE TOGGLE */
+    .mode-toggle {
       display:flex;
       border:1px solid var(--input-bg);
       border-radius:20px;
       overflow:hidden;
-      margin-bottom:12px;
+      margin-bottom:16px;      /* more space */
     }
-    .mode-btn{
+    .mode-btn {
+      flex:1;
       padding:6px 16px;
       cursor:pointer;
       background:var(--input-bg);
       color:var(--text-light);
       font-weight:600;
       font-size:14px;
-      user-select:none;
-      flex:1;
       text-align:center;
+      user-select:none;
     }
-    .mode-btn.active{
+    .mode-btn.active {
       background:var(--button-blue);
       color:#fff;
     }
 
     /* CONTROLS */
-    .control{display:flex;flex-direction:column;gap:6px;}
-    .control label{color:var(--text-secondary);font-size:14px;}
-    .control input,
-    .control select{
+    .control {
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .control label {
+      color:var(--text-secondary);
+      font-size:14px;
+    }
+    .control input, .control select {
       padding:10px;
       background:var(--input-bg);
-      border:none;
-      border-radius:4px;
+      border:none; border-radius:4px;
       color:var(--text-light);
       font-size:16px;
     }
-    .extras{display:flex;gap:8px;}
-    .extras button{
-      flex:1;
-      padding:6px;
-      background:var(--input-bg);
-      border:none;
-      border-radius:4px;
-      color:var(--text-light);
-      font-weight:600;
-      cursor:pointer;
+    .extras {
+      display:flex; gap:8px;
     }
-    .button-row{display:flex;gap:8px;margin-top:8px;}
-    #betBtn,
-    #cashOutBtn{
+    .extras button {
+      flex:1; padding:6px;
+      background:var(--input-bg); border:none; border-radius:4px;
+      color:var(--text-light); font-weight:600; cursor:pointer;
+    }
+    .button-row {
+      display:flex; gap:8px;
+      margin-top:16px;           /* more spacing */
+    }
+    #betBtn, #cashOutBtn {
       flex:1;
       padding:12px;
       font-size:16px;
-      border:none;
-      border-radius:4px;
-      cursor:pointer;
-      font-weight:600;
+      border:none; border-radius:4px;
+      cursor:pointer; font-weight:600;
     }
-    #betBtn{background:var(--button-blue);color:#fff;}
-    #cashOutBtn{
+    #betBtn {
+      background:var(--button-blue);
+      color:#fff;
+    }
+    #cashOutBtn {
       background:var(--button-green);
       color:#fff;
-      box-shadow:0 0 8px var(--button-green);
       display:none;
     }
 
-    /* GRID & CELLS */
-    .grid{
+    /* GRID */
+    .grid {
       display:grid;
       grid-template-columns:repeat(5,1fr);
-      gap:5px;
+      gap:8px;                    /* slightly larger gap */
       background:var(--panel-bg);
       padding:10px;
       border-radius:4px;
       user-select:none;
     }
-    .cell{
+    .cell {
       background:var(--input-bg);
       border:2px solid var(--cell-border);
       border-radius:4px;
-      width:64px;height:64px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:28px;
+      width:100%;
+      aspect-ratio:1/1;
+      display:flex; justify-content:center; align-items:center;
+      font-size:clamp(1.5rem,4vw,2.5rem);
       cursor:pointer;
-      transition:background-color .2s;
     }
-    .cell.disabled{cursor:default;}
-    .cell.pre{background:var(--button-blue);}
-    .pop{animation:pop .3s ease;}
-    .shine{animation:shineAnim .8s ease-in-out forwards;}
-    .explosion{animation:explodeAnim .8s ease forwards;}
-    @keyframes pop{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
-    @keyframes shineAnim{0%,100%{box-shadow:0 0 5px var(--button-green);}50%{box-shadow:0 0 15px var(--button-green);}}
-    @keyframes explodeAnim{0%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:0.8;}100%{transform:scale(0);opacity:0;}}
+    .cell.disabled { cursor:default; }
+    .pop { animation:pop .3s ease; }
+    .shine { animation:shineAnim .8s ease-in-out forwards; }
+    .explosion { animation:explodeAnim .8s ease forwards; }
 
-    /* RESULT OVERLAY */
-    .overlay{
-      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    @keyframes pop {
+      0%,100%{transform:scale(1);}50%{transform:scale(1.2);}
+    }
+    @keyframes shineAnim {
+      0%,100%{box-shadow:0 0 5px var(--button-green);}50%{box-shadow:0 0 15px var(--button-green);}
+    }
+    @keyframes explodeAnim {
+      0%{transform:scale(1);opacity:1;}50%{transform:scale(1.5);opacity:0.8;}100%{transform:scale(0);opacity:0;}
+    }
+
+    /* OVERLAY */
+    .overlay {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
       background:var(--overlay-bg);
       padding:20px 30px;
       border-radius:8px;
@@ -218,26 +212,44 @@
       display:none;
       border:2px solid transparent;
     }
-    .overlay.win{
+    .overlay.win {
       border-color:var(--button-green);
       box-shadow:0 0 12px var(--button-green);
     }
-    .overlay.loss{
+    .overlay.loss {
       border-color:var(--button-cash);
       box-shadow:0 0 12px var(--button-cash);
     }
-    .overlay .mult{font-size:32px;font-weight:700;color:#fff;}
-    .overlay .win{font-size:18px;margin-top:8px;color:#fff;}
+    .overlay .mult {
+      font-size:32px; font-weight:700; color:#fff;
+    }
+    .overlay .win {
+      font-size:18px; margin-top:8px; color:#fff;
+    }
 
-    /* RESPONSIVE */
+    /* NOTIFICATION */
+    .notification {
+      position:absolute;
+      top:40%; left:50%;
+      transform:translate(-50%,-50%);
+      background:var(--button-cash);
+      color:#fff;
+      padding:20px 40px;
+      border-radius:8px;
+      font-size:24px;
+      display:none;
+    }
+    .notification.win { background:var(--button-green); }
+
+    /* MOBILE */
     @media(max-width:768px){
-      body{padding-bottom:calc(70px+env(safe-area-inset-bottom));}
+      body{padding-bottom:env(safe-area-inset-bottom);}
       .main{flex-direction:column;}
       .game{padding:20px 15px;}
       .sidebar{
-        position:fixed;bottom:0;left:0;right:0;width:100%;
-        padding:10px 20px env(safe-area-inset-bottom);
-        z-index:1000;
+        position:static;   /* ← no longer fixed */
+        width:100%;
+        padding:10px 20px;
       }
     }
   </style>
@@ -265,6 +277,7 @@
         <div class="mult" id="overlayMult">x0.00</div>
         <div class="win"  id="overlayWin">$0.00</div>
       </div>
+      <div class="notification" id="notification"></div>
     </div>
 
     <div class="sidebar">
@@ -297,6 +310,7 @@
           overlay     = document.getElementById('overlay'),
           multEl      = document.getElementById('overlayMult'),
           winEl       = document.getElementById('overlayWin'),
+          notif       = document.getElementById('notification'),
           betBtn      = document.getElementById('betBtn'),
           cashBtn     = document.getElementById('cashOutBtn'),
           addBtn      = document.getElementById('addMoneyBtn'),
@@ -322,87 +336,88 @@
         preselected = new Set(),
         totalCells  = 25;
 
-    // Populate mines dropdown
-    for(let i=1;i<=24;i++){
-      const o=document.createElement('option');
-      o.value=i; o.textContent=i;
-      if(i===3) o.selected=true;
+    // populate mines dropdown
+    for (let i=1; i<=24; i++){
+      const o = document.createElement('option');
+      o.value = i; o.textContent = i;
+      if (i===3) o.selected = true;
       minesSel.append(o);
     }
 
     function updateBalance(v){
-      balanceEl.textContent='$'+v.toFixed(2);
+      balanceEl.textContent = '$'+v.toFixed(2);
     }
     function glowBalance(){
       balanceEl.classList.add('glow');
       setTimeout(()=>balanceEl.classList.remove('glow'),800);
     }
-    function animateCount(el,s,e,suf='x',dur=400){
-      const r=e-s; let t0=null;
+    function animateCount(el, start, end, suffix='x', dur=400){
+      let range = end-start, t0=null;
       function step(ts){
-        if(!t0)t0=ts;
-        const p=Math.min((ts-t0)/dur,1), v=s+r*p;
-        el.textContent=v.toFixed(2)+suf;
-        if(p<1) requestAnimationFrame(step);
+        if (!t0) t0 = ts;
+        let p = Math.min((ts-t0)/dur,1),
+            val = start + range*p;
+        el.textContent = val.toFixed(2) + suffix;
+        if (p<1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
     function showResult(type,mul,amt){
-      overlay.className='overlay '+type;
-      if(type==='win'){
-        animateCount(multEl,lastMul,mul,'x',400);
-        lastMul=mul;
-        winEl.textContent='$'+amt.toFixed(2);
+      overlay.className = 'overlay '+type;
+      if (type==='win'){
+        animateCount(multEl, lastMul, mul, 'x', 400);
+        lastMul = mul;
+        winEl.textContent = '$'+amt.toFixed(2);
       } else {
-        multEl.textContent='';
-        winEl.textContent='-$'+amt.toFixed(2);
-        lastMul=1;
+        multEl.textContent = '';
+        winEl.textContent = '-$'+amt.toFixed(2);
+        lastMul = 1;
       }
-      overlay.style.display='block';
-      setTimeout(()=>overlay.style.display='none',1000);
+      overlay.style.display = 'block';
+      setTimeout(()=>overlay.style.display='none', 1000);
     }
 
-    // Add money popup
+    // add money popup
     addMenu.style.display='none';
-    addBtn.onclick=()=>addMenu.style.display=addMenu.style.display==='flex'?'none':'flex';
-    addOptions.forEach(b=>b.onclick=()=>{
-      balance+=+b.dataset.amt; updateBalance(balance);
+    addBtn.onclick = ()=> addMenu.style.display = addMenu.style.display==='flex'?'none':'flex';
+    addOptions.forEach(b=> b.onclick = ()=>{
+      balance+= +b.dataset.amt;
+      updateBalance(balance);
     });
 
-    // Mode toggle & reset
+    // mode toggle
     function resetBoard(){
       preselected.clear();
-      revealed=0; currentMul=lastMul=1;
+      revealed = 0; currentMul = lastMul = 1;
       overlay.style.display='none';
       cashBtn.style.display='none';
       createGrid(); setupMines();
     }
-    manualBtn.onclick=()=>{
-      if(activeRound) return;
-      isManual=true;
+    manualBtn.onclick = ()=>{
+      if (activeRound) return;
+      isManual = true;
       manualBtn.classList.add('active');
       autoBtn.classList.remove('active');
       resetBoard();
     };
-    autoBtn.onclick=()=>{
-      if(activeRound) return;
-      isManual=false;
+    autoBtn.onclick = ()=>{
+      if (activeRound) return;
+      isManual = false;
       autoBtn.classList.add('active');
       manualBtn.classList.remove('active');
       resetBoard();
     };
 
-    // Grid & mines
+    // grid & mines
     function createGrid(){
       gridEl.innerHTML=''; cells=[];
-      for(let i=0;i<totalCells;i++){
-        let c=document.createElement('div');
-        c.className='cell';
-        c.dataset.idx=i;
-        c.onclick=e=>{
-          if(!activeRound && !isManual){
-            let idx=+c.dataset.idx;
-            if(preselected.has(idx)){
+      for (let i=0; i<totalCells; i++){
+        let c = document.createElement('div');
+        c.className='cell'; c.dataset.idx=i;
+        c.onclick = e => {
+          if (!activeRound && !isManual){
+            let idx = +c.dataset.idx;
+            if (preselected.has(idx)){
               preselected.delete(idx);
               c.classList.remove('pre');
             } else {
@@ -411,7 +426,7 @@
             }
             return;
           }
-          if(activeRound && isManual){
+          if (activeRound && isManual){
             onCellClick(e);
           }
         };
@@ -421,16 +436,18 @@
     }
     function setupMines(){
       mines.clear();
-      let m=+minesSel.value;
-      while(mines.size<m) mines.add(Math.floor(Math.random()*totalCells));
+      let m = +minesSel.value;
+      while (mines.size < m) {
+        mines.add(Math.floor(Math.random()*totalCells));
+      }
     }
     function revealAll(){
       cells.forEach(c=>{
-        let idx=+c.dataset.idx;
-        if(!c.classList.contains('disabled')){
+        let idx = +c.dataset.idx;
+        if (!c.classList.contains('disabled')){
           c.classList.add('disabled');
           c.textContent = mines.has(idx)?'💣':'💎';
-          if(mines.has(idx)){
+          if (mines.has(idx)){
             c.classList.add('explosion');
             setTimeout(()=>c.classList.remove('explosion'),800);
           } else {
@@ -441,13 +458,13 @@
       });
     }
 
-    // Manual reveal
+    // manual click
     function onCellClick(e){
       let c=e.currentTarget, idx=+c.dataset.idx;
-      if(c.classList.contains('disabled')) return;
+      if (c.classList.contains('disabled')) return;
       c.classList.add('disabled','pop');
-      c.addEventListener('animationend',()=>c.classList.remove('pop'),{once:true});
-      if(mines.has(idx)){
+      c.addEventListener('animationend', ()=> c.classList.remove('pop'), {once:true});
+      if (mines.has(idx)){
         activeRound=false;
         c.textContent='💣';
         c.classList.add('explosion');
@@ -464,50 +481,50 @@
         c.textContent='💎';
         c.classList.add('shine');
         setTimeout(()=>c.classList.remove('shine'),800);
-        chaChing.currentTime=0;chaChing.play();
+        chaChing.currentTime=0; chaChing.play();
         confetti({particleCount:100,spread:60,origin:{y:0.2}});
-        let m=+minesSel.value;
-        let factor=(totalCells-(revealed-1))/(totalCells-m-(revealed-1));
-        currentMul*=factor;
-        let pot=roundBet*currentMul;
+        let m = +minesSel.value;
+        let factor = (totalCells-(revealed-1)) / (totalCells-m-(revealed-1));
+        currentMul *= factor;
+        let pot = roundBet * currentMul;
         updateBalance(baseBalance+pot);
         glowBalance();
         showResult('win',currentMul,pot);
         cashBtn.style.display='block';
-        cashBtn.textContent='Cash Out +$'+pot.toFixed(2);
+        cashBtn.textContent = 'Cash Out +$'+pot.toFixed(2);
       }
     }
 
     // Bet
-    betBtn.onclick=()=>{
-      if(activeRound) return;
-      let bet=parseFloat(betAmtInput.value)||0;
-      if(bet<=0){alert('Bet must be > $0');return;}
-      if(bet>balance){alert('Not enough funds');return;}
-      if(!isManual && preselected.size===0){
+    betBtn.onclick = ()=>{
+      if (activeRound) return;
+      let bet = parseFloat(betAmtInput.value)||0;
+      if (bet<=0){ alert('Bet must be > $0'); return; }
+      if (bet>balance){ alert('Not enough funds'); return; }
+      if (!isManual && preselected.size===0){
         alert('Select at least one tile in Auto mode');
         return;
       }
-      roundBet=bet;
-      balance-=bet;
-      baseBalance=balance;
+      roundBet = bet;
+      balance -= bet;
+      baseBalance = balance;
       updateBalance(balance);
       activeRound=true;
-      revealed=0;currentMul=lastMul=1;
+      revealed=0; currentMul=lastMul=1;
       betBtn.disabled=true;
       betAmtInput.disabled=true;
       minesSel.disabled=true;
       cashBtn.style.display='none';
-      createGrid();setupMines();
+      createGrid(); setupMines();
 
-      if(!isManual){
-        // Auto
+      if (!isManual){
+        // auto flow
         let lose=false, mul=1, i=0;
         preselected.forEach(idx=>{
-          let c=cells[idx];
-          if(!c.classList.contains('disabled')){
+          let c = cells[idx];
+          if (!c.classList.contains('disabled')){
             c.classList.add('disabled');
-            if(mines.has(idx)){
+            if (mines.has(idx)){
               lose=true;
               c.textContent='💣';
               c.classList.add('explosion');
@@ -518,24 +535,22 @@
               setTimeout(()=>c.classList.remove('shine'),800);
               let m=+minesSel.value;
               let factor=(totalCells-i)/(totalCells-m-i);
-              mul*=factor;
+              mul *= factor;
               i++;
             }
           }
         });
-        if(lose){
+        if (lose){
           showResult('loss',0,roundBet);
           updateBalance(baseBalance);
         } else {
-          let winAmt=roundBet*mul;
-          balance+=winAmt;
+          let winAmt = roundBet*mul;
+          balance += winAmt;
           updateBalance(balance);
           glowBalance();
           showResult('win',mul,winAmt);
         }
-        // reveal rest
         setTimeout(revealAll,500);
-        // reset + enable + rename after 1.5s
         setTimeout(()=>{
           resetBoard();
           activeRound=false;
@@ -547,13 +562,13 @@
       }
     };
 
-    // Cash Out (Manual)
+    // Cash out manual
     cashBtn.onclick=()=>{
-      if(!activeRound) return;
+      if (!activeRound) return;
       activeRound=false;
       revealAll();
-      let winAmt=roundBet*currentMul;
-      balance+=winAmt;
+      let winAmt = roundBet*currentMul;
+      balance += winAmt;
       updateBalance(balance);
       showResult('win',currentMul,winAmt);
       betBtn.disabled=false;
@@ -562,17 +577,17 @@
       cashBtn.style.display='none';
     };
 
-    // Half/Double
-    document.getElementById('half').onclick=()=>{
+    // half/double
+    document.getElementById('half').onclick = ()=>{
       let v=parseFloat(betAmtInput.value)||0;
       betAmtInput.value=(v/2).toFixed(2);
     };
-    document.getElementById('double').onclick=()=>{
+    document.getElementById('double').onclick = ()=>{
       let v=parseFloat(betAmtInput.value)||0;
       betAmtInput.value=(v*2).toFixed(2);
     };
 
-    // Initialize
+    // init
     createGrid(); setupMines(); updateBalance(balance);
   </script>
 </body>
