@@ -31,20 +31,15 @@
       background:var(--bg-main);
       color:var(--text-light);
       overflow:auto;
-      overscroll-behavior:none;
     }
     body { display:flex; flex-direction:column; }
 
     /* STICKY HEADER */
     .header {
-      position:sticky;
-      top:0;
-      z-index:1000;
+      position:sticky; top:0; z-index:1000;
       background:var(--panel-bg);
       padding:12px 20px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
+      display:flex; justify-content:center; align-items:center;
     }
     .balance-add { display:flex; align-items:center; gap:8px; }
     .balance-label { color:var(--text-secondary); font-size:14px; }
@@ -83,19 +78,12 @@
       flex:1; text-align:center; cursor:pointer;
     }
 
-    /* MAIN LAYOUT */
-    .main {
-      flex:1; display:flex;
-      padding-bottom:40px;
-    }
-    .game {
-      flex:1; padding:20px; position:relative;
-    }
+    /* LAYOUT */
+    .main { flex:1; display:flex; padding-bottom:40px; }
+    .game { flex:1; padding:20px; position:relative; }
     .sidebar {
-      width:280px;
-      background:var(--panel-bg);
-      padding:20px;
-      display:flex; flex-direction:column; gap:12px;
+      width:280px; background:var(--panel-bg);
+      padding:20px; display:flex; flex-direction:column; gap:12px;
     }
 
     /* MODE TOGGLE */
@@ -107,36 +95,60 @@
       margin-bottom:16px;
     }
     .mode-btn {
-      flex:1;
-      padding:6px 16px;
-      cursor:pointer;
+      flex:1; padding:6px 16px;
+      text-align:center; cursor:pointer;
       background:var(--input-bg);
       color:var(--text-light);
-      font-weight:600;
-      font-size:14px;
-      text-align:center;
+      font-weight:600; font-size:14px;
       user-select:none;
     }
     .mode-btn.active {
-      background:var(--button-blue);
-      color:#fff;
+      background:var(--button-blue); color:#fff;
     }
 
-    /* CONTROLS */
+    /* BET AMOUNT ROW */
+    .bet-row {
+      display:flex; align-items:center; gap:4px;
+    }
+    .bet-input-wrapper {
+      position:relative;
+      flex:1;
+    }
+    .bet-input-wrapper .prefix {
+      position:absolute; left:8px; top:50%;
+      transform:translateY(-50%);
+      color:var(--text-light);
+      font-size:16px;
+      pointer-events:none;
+    }
+    .bet-input-wrapper input {
+      width:100%;
+      padding:8px 8px 8px 20px;
+      background:var(--input-bg);
+      border:none; border-radius:4px;
+      color:var(--text-light);
+      font-size:16px;
+      font-weight:600;
+    }
+    .small-btn {
+      padding:8px 12px;
+      background:var(--input-bg);
+      border:none; border-radius:4px;
+      color:var(--text-light);
+      font-weight:600;
+      cursor:pointer;
+    }
+
+    /* REMAINING CONTROLS */
     .control { display:flex; flex-direction:column; gap:6px; }
     .control label { color:var(--text-secondary); font-size:14px; }
-    .control input, .control select {
+    .control select {
       padding:10px;
       background:var(--input-bg);
       border:none; border-radius:4px;
       color:var(--text-light); font-size:16px;
     }
-    .extras { display:flex; gap:8px; }
-    .extras button {
-      flex:1; padding:6px;
-      background:var(--input-bg); border:none; border-radius:4px;
-      color:var(--text-light); font-weight:600; cursor:pointer;
-    }
+
     .button-row {
       display:flex; gap:8px;
       margin-top:16px;
@@ -153,14 +165,13 @@
       display:none;
     }
 
-    /* GRID */
+    /* GRID & CELLS */
     .grid {
       display:grid;
       grid-template-columns:repeat(5,1fr);
       gap:8px;
       background:var(--panel-bg);
-      padding:10px;
-      border-radius:4px;
+      padding:10px; border-radius:4px;
       user-select:none;
     }
     .cell {
@@ -215,17 +226,17 @@
     }
     .notification.win { background:var(--button-green); }
 
-    /* MOBILE ADJUST */
+    /* MOBILE */
     @media(max-width:768px){
       body { padding-bottom:env(safe-area-inset-bottom); }
       .main { flex-direction:column; }
       .game { padding:20px 15px; }
       .sidebar {
-        position:static;
-        width:100%;
+        position:static; width:100%;
         padding:10px 20px;
       }
     }
+
   </style>
 </head>
 <body>
@@ -258,18 +269,24 @@
         <div id="manualBtn" class="mode-btn active">Manual</div>
         <div id="autoBtn"   class="mode-btn">Auto</div>
       </div>
+
       <div class="control">
-        <label>Bet Amount ($)</label>
-        <input type="number" id="betAmount" step="0.01" value="100.00" />
+        <label>Bet Amount</label>
+        <div class="bet-row">
+          <div class="bet-input-wrapper">
+            <span class="prefix">$</span>
+            <input type="number" id="betAmount" step="0.01" value="100.00" />
+          </div>
+          <button id="half" class="small-btn">½</button>
+          <button id="double" class="small-btn">2×</button>
+        </div>
       </div>
-      <div class="extras">
-        <button id="half">½</button>
-        <button id="double">2×</button>
-      </div>
+
       <div class="control">
         <label>Mines</label>
         <select id="mines"></select>
       </div>
+
       <div class="button-row">
         <button id="betBtn">Bet</button>
         <button id="cashOutBtn">Cash Out</button>
@@ -308,7 +325,7 @@
         preselected = new Set(),
         totalCells  = 25;
 
-    // Populate mines dropdown
+    // populate mines dropdown
     for (let i=1; i<=24; i++){
       let o = document.createElement('option');
       o.value = i; o.textContent = i;
@@ -317,48 +334,47 @@
     }
 
     function updateBalance(v){
-      balanceEl.textContent = '$'+v.toFixed(2);
+      balanceEl.textContent = '$' + v.toFixed(2);
     }
     function glowBalance(){
       balanceEl.classList.add('glow');
       setTimeout(()=>balanceEl.classList.remove('glow'),800);
     }
     function animateCount(el, start, end, suffix='x', dur=400){
-      const range = end-start;
-      let t0 = null;
+      let range = end-start, t0=null;
       function step(ts){
-        if (!t0) t0 = ts;
+        if (!t0) t0=ts;
         let p = Math.min((ts-t0)/dur,1),
-            val = start + range*p;
-        el.textContent = val.toFixed(2) + suffix;
+            v = start + range*p;
+        el.textContent = v.toFixed(2)+suffix;
         if (p<1) requestAnimationFrame(step);
       }
       requestAnimationFrame(step);
     }
-    function showResult(type, mul, amt){
+    function showResult(type,mul,amt){
       overlay.className = 'overlay '+type;
       if (type==='win'){
-        animateCount(multEl, lastMul, mul,'x',400);
-        lastMul = mul;
+        animateCount(multEl,lastMul,mul,'x',400);
+        lastMul=mul;
         winEl.textContent = '$'+amt.toFixed(2);
       } else {
-        multEl.textContent = '';
-        winEl.textContent  = '-$'+amt.toFixed(2);
-        lastMul = 1;
+        multEl.textContent='';
+        winEl.textContent='-$'+amt.toFixed(2);
+        lastMul=1;
       }
-      overlay.style.display = 'block';
+      overlay.style.display='block';
       setTimeout(()=>overlay.style.display='none',1000);
     }
 
-    // Add-money popup
+    // Add popup
     addMenu.style.display='none';
     addBtn.onclick = ()=> addMenu.style.display = addMenu.style.display==='flex'?'none':'flex';
-    addOptions.forEach(b => b.onclick = ()=>{
+    addOptions.forEach(b=> b.onclick=()=>{
       balance += +b.dataset.amt;
       updateBalance(balance);
     });
 
-    // Mode toggle & reset
+    // reset board helper
     function resetBoard(){
       preselected.clear();
       revealed=0; currentMul=lastMul=1;
@@ -366,29 +382,31 @@
       cashBtn.style.display='none';
       createGrid(); setupMines();
     }
+
+    // mode toggle
     manualBtn.onclick = ()=>{
       if (activeRound) return;
-      isManual = true;
+      isManual=true;
       manualBtn.classList.add('active');
       autoBtn.classList.remove('active');
       resetBoard();
     };
     autoBtn.onclick = ()=>{
       if (activeRound) return;
-      isManual = false;
+      isManual=false;
       autoBtn.classList.add('active');
       manualBtn.classList.remove('active');
       resetBoard();
     };
 
-    // Grid & mines
+    // grid setup
     function createGrid(){
       gridEl.innerHTML=''; cells=[];
       for (let i=0; i<totalCells; i++){
         let c = document.createElement('div');
         c.className='cell';
         c.dataset.idx = i;
-        c.onclick = e => {
+        c.onclick = e=>{
           if (!activeRound && !isManual){
             let idx = +c.dataset.idx;
             if (preselected.has(idx)){
@@ -411,16 +429,16 @@
     function setupMines(){
       mines.clear();
       let m = +minesSel.value;
-      while (mines.size < m){
+      while(mines.size < m){
         mines.add(Math.floor(Math.random()*totalCells));
       }
     }
     function revealAll(){
       cells.forEach(c=>{
-        const idx = +c.dataset.idx;
+        let idx = +c.dataset.idx;
         if (!c.classList.contains('disabled')){
           c.classList.add('disabled');
-          c.textContent = mines.has(idx) ? '💣' : '💎';
+          c.textContent = mines.has(idx)?'💣':'💎';
           if (mines.has(idx)){
             c.classList.add('explosion');
             setTimeout(()=>c.classList.remove('explosion'),800);
@@ -432,12 +450,12 @@
       });
     }
 
-    // Manual click handler
+    // manual click
     function onCellClick(e){
-      const c = e.currentTarget, idx = +c.dataset.idx;
+      const c = e.currentTarget, idx=+c.dataset.idx;
       if (c.classList.contains('disabled')) return;
       c.classList.add('disabled','pop');
-      c.addEventListener('animationend', ()=>c.classList.remove('pop'), { once:true });
+      c.addEventListener('animationend',()=>c.classList.remove('pop'),{once:true});
       if (mines.has(idx)){
         activeRound=false;
         c.textContent='💣';
@@ -456,11 +474,11 @@
         c.classList.add('shine');
         setTimeout(()=>c.classList.remove('shine'),800);
         chaChing.currentTime=0; chaChing.play();
-        confetti({ particleCount:100, spread:60, origin:{ y:0.2 }});
+        confetti({particleCount:100,spread:60,origin:{y:0.2}});
         let m = +minesSel.value;
         let factor = (totalCells-(revealed-1))/(totalCells-m-(revealed-1));
         currentMul *= factor;
-        let pot = roundBet * currentMul;
+        let pot = roundBet*currentMul;
         updateBalance(baseBalance+pot);
         glowBalance();
         showResult('win',currentMul,pot);
@@ -479,27 +497,27 @@
         alert('Select at least one tile in Auto mode');
         return;
       }
-      roundBet = bet;
-      balance -= bet;
-      baseBalance = balance;
+      roundBet=bet;
+      balance-=bet;
+      baseBalance=balance;
       updateBalance(balance);
-      activeRound = true;
-      revealed = 0; currentMul = lastMul = 1;
-      betBtn.disabled = true;
-      betAmtInput.disabled = true;
-      minesSel.disabled = true;
+      activeRound=true;
+      revealed=0; currentMul=lastMul=1;
+      betBtn.disabled=true;
+      betAmtInput.disabled=true;
+      minesSel.disabled=true;
       cashBtn.style.display='none';
       createGrid(); setupMines();
 
       if (!isManual){
-        // Auto flow
-        let lose = false, mul = 1, i = 0;
+        // auto flow
+        let lose=false, mul=1, i=0;
         preselected.forEach(idx=>{
-          let c = cells[idx];
+          let c=cells[idx];
           if (!c.classList.contains('disabled')){
             c.classList.add('disabled');
             if (mines.has(idx)){
-              lose = true;
+              lose=true;
               c.textContent='💣';
               c.classList.add('explosion');
               setTimeout(()=>c.classList.remove('explosion'),800);
@@ -507,10 +525,9 @@
               c.textContent='💎';
               c.classList.add('shine');
               setTimeout(()=>c.classList.remove('shine'),800);
-              let m = +minesSel.value;
-              let factor = (totalCells - i)/(totalCells - m - i);
-              mul *= factor;
-              i++;
+              let m=+minesSel.value;
+              let f=(totalCells-i)/(totalCells-m-i);
+              mul*=f; i++;
             }
           }
         });
@@ -518,8 +535,8 @@
           showResult('loss',0,roundBet);
           updateBalance(baseBalance);
         } else {
-          let winAmt = roundBet * mul;
-          balance += winAmt;
+          let winAmt=roundBet*mul;
+          balance+=winAmt;
           updateBalance(balance);
           glowBalance();
           showResult('win',mul,winAmt);
@@ -527,11 +544,11 @@
         setTimeout(revealAll,500);
         setTimeout(()=>{
           resetBoard();
-          activeRound = false;
-          betBtn.disabled = false;
-          betAmtInput.disabled = false;
-          minesSel.disabled = false;
-          betBtn.textContent = 'Bet';
+          activeRound=false;
+          betBtn.disabled=false;
+          betAmtInput.disabled=false;
+          minesSel.disabled=false;
+          betBtn.textContent='Bet';
         },1500);
       }
     };
@@ -539,10 +556,10 @@
     // Cash out manual
     cashBtn.onclick = ()=>{
       if (!activeRound) return;
-      activeRound = false;
+      activeRound=false;
       revealAll();
-      let winAmt = roundBet * currentMul;
-      balance += winAmt;
+      let winAmt = roundBet*currentMul;
+      balance+=winAmt;
       updateBalance(balance);
       showResult('win',currentMul,winAmt);
       betBtn.disabled=false;
@@ -551,17 +568,17 @@
       cashBtn.style.display='none';
     };
 
-    // ½ and 2× shortcuts
+    // ½ / 2× shortcuts
     document.getElementById('half').onclick = ()=>{
-      let v = parseFloat(betAmtInput.value)||0;
+      let v=parseFloat(betAmtInput.value)||0;
       betAmtInput.value = (v/2).toFixed(2);
     };
     document.getElementById('double').onclick = ()=>{
-      let v = parseFloat(betAmtInput.value)||0;
+      let v=parseFloat(betAmtInput.value)||0;
       betAmtInput.value = (v*2).toFixed(2);
     };
 
-    // Initialize
+    // initialize
     createGrid();
     setupMines();
     updateBalance(balance);
