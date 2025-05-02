@@ -39,27 +39,8 @@
       padding:12px 20px;
       display:flex;
       align-items:center;
-      justify-content:space-between;
+      justify-content:flex-end;
       position:relative;
-    }
-    .mode-toggle{
-      display:flex;
-      border:1px solid var(--input-bg);
-      border-radius:20px;
-      overflow:hidden;
-    }
-    .mode-btn{
-      padding:6px 16px;
-      cursor:pointer;
-      background:var(--input-bg);
-      color:var(--text-light);
-      font-weight:600;
-      font-size:14px;
-      user-select:none;
-    }
-    .mode-btn.active{
-      background:var(--button-blue);
-      color:#fff;
     }
     .balance-add{
       display:flex;align-items:center;gap:8px;
@@ -128,6 +109,30 @@
       display:flex;
       flex-direction:column;
       gap:12px;
+    }
+
+    /* MODE TOGGLE (moved to sidebar) */
+    .mode-toggle{
+      display:flex;
+      border:1px solid var(--input-bg);
+      border-radius:20px;
+      overflow:hidden;
+      margin-bottom:12px;
+    }
+    .mode-btn{
+      padding:6px 16px;
+      cursor:pointer;
+      background:var(--input-bg);
+      color:var(--text-light);
+      font-weight:600;
+      font-size:14px;
+      user-select:none;
+      flex:1;
+      text-align:center;
+    }
+    .mode-btn.active{
+      background:var(--button-blue);
+      color:#fff;
     }
 
     /* CONTROLS */
@@ -240,10 +245,6 @@
 <body>
 
   <header class="header">
-    <div class="mode-toggle">
-      <div id="manualBtn" class="mode-btn active">Manual</div>
-      <div id="autoBtn"   class="mode-btn">Auto</div>
-    </div>
     <div class="balance-add">
       <span class="balance-label">Balance</span>
       <span class="balance-display" id="balance">$1,000.00</span>
@@ -266,6 +267,12 @@
       </div>
     </div>
     <div class="sidebar">
+      <!-- Moved here: Manual/Auto toggle -->
+      <div class="mode-toggle">
+        <div id="manualBtn" class="mode-btn active">Manual</div>
+        <div id="autoBtn"   class="mode-btn">Auto</div>
+      </div>
+
       <div class="control">
         <label>Bet Amount ($)</label>
         <input type="number" id="betAmount" step="0.01" value="100.00" />
