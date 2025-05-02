@@ -135,12 +135,12 @@
     .control label{color:var(--text-secondary);font-size:14px;}
     .control input,
     .control select{
-      padding:8px;
+      padding:10px;
       background:var(--input-bg);
       border:none;
       border-radius:4px;
       color:var(--text-light);
-      font-size:14px;
+      font-size:16px;
     }
     .extras{display:flex;gap:8px;}
     .extras button{
@@ -359,11 +359,10 @@
     addMenu.style.display='none';
     addBtn.onclick=()=>addMenu.style.display=addMenu.style.display==='flex'?'none':'flex';
     addOptions.forEach(b=>b.onclick=()=>{
-      balance+=+b.dataset.amt;
-      updateBalance(balance);
+      balance+=+b.dataset.amt; updateBalance(balance);
     });
 
-    // Mode toggle
+    // Mode toggle & reset
     function resetBoard(){
       preselected.clear();
       revealed=0; currentMul=lastMul=1;
@@ -476,8 +475,12 @@
     betBtn.onclick=()=>{
       if(activeRound) return;
       let bet=parseFloat(betAmtInput.value)||0;
-      if(bet<=0){alert('Bet > $0');return;}
+      if(bet<=0){alert('Bet must be > $0');return;}
       if(bet>balance){alert('Not enough funds');return;}
+      if(!isManual && preselected.size===0){
+        alert('Select at least one tile in Auto mode');
+        return;
+      }
       roundBet=bet;
       balance-=bet;
       baseBalance=balance;
@@ -491,7 +494,7 @@
       createGrid();setupMines();
 
       if(!isManual){
-        // Auto: reveal preselected
+        // Auto
         let lose=false, mul=1, i=0;
         preselected.forEach(idx=>{
           let c=cells[idx];
@@ -513,7 +516,6 @@
             }
           }
         });
-        // result
         if(lose){
           showResult('loss',0,roundBet);
           updateBalance(baseBalance);
@@ -526,14 +528,15 @@
         }
         // reveal rest
         setTimeout(revealAll,500);
-        // reset after delay
+        // reset + enable + rename after 1.5s
         setTimeout(()=>{
           resetBoard();
           activeRound=false;
           betBtn.disabled=false;
           betAmtInput.disabled=false;
           minesSel.disabled=false;
-        },1200);
+          betBtn.textContent='Bet Again';
+        },1500);
       }
     };
 
@@ -562,7 +565,7 @@
       betAmtInput.value=(v*2).toFixed(2);
     };
 
-    // Init
+    // Initialize
     createGrid(); setupMines(); updateBalance(balance);
   </script>
 </body>
