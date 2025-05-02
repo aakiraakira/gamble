@@ -24,125 +24,203 @@
       --cell-border: #2a3a4a;
       --overlay-bg: rgba(0,0,0,0.8);
     }
-    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+    *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
     html, body {
-      width:100%; height:100%;
+      width:100%; min-height:100%;
       font-family:'Inter',sans-serif;
       background:var(--bg-main);
       color:var(--text-light);
-      /* enable immediate taps, prevent double-tap zoom */
-      touch-action: manipulation;
-      overflow:hidden; overscroll-behavior:none;
-    }
-    button, .cell {
-      /* remove tap highlight on iOS */
-      -webkit-tap-highlight-color: transparent;
-      touch-action: manipulation;
+      /* allow vertical scrolling, hide horizontal */
+      overflow-x:hidden;
+      overflow-y:auto;
+      /* iOS safe-area at bottom */
+      padding-bottom: env(safe-area-inset-bottom);
     }
     body { display:flex; flex-direction:column; }
 
-    /* ===== HEADER ===== */
+    /* ---- STICKY HEADER ---- */
     .header {
-      background:var(--panel-bg);
-      padding:12px 20px;
-      display:flex; align-items:center; justify-content:center;
-      position:sticky; top:0; z-index:100;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--panel-bg);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .balance-add { display:flex; align-items:center; gap:8px; }
-    .balance-label { color:var(--text-secondary); font-size:14px; }
+    .balance-add {
+      display:flex; align-items:center; gap:8px;
+    }
+    .balance-label {
+      color: var(--text-secondary);
+      font-size: 14px;
+    }
     .balance-display {
-      background:var(--input-bg);
-      padding:6px 10px;
-      border-radius:4px;
-      font-size:20px; font-weight:700;
-      transition:box-shadow .3s ease;
+      background: var(--input-bg);
+      padding: 6px 10px;
+      border-radius: 4px;
+      font-size: 20px;
+      font-weight: 700;
+      transition: box-shadow .3s ease;
     }
-    .balance-display.glow { box-shadow:0 0 10px var(--button-green); }
+    .balance-display.glow {
+      box-shadow: 0 0 10px var(--button-green);
+    }
     .add-btn {
       background:var(--button-blue);
-      color:#fff; border:none;
-      padding:6px 10px; border-radius:4px;
-      font-size:16px; font-weight:600;
+      color:#fff;
+      border:none;
+      padding:6px 10px;
+      border-radius:4px;
+      font-size:16px;
+      font-weight:600;
       cursor:pointer;
     }
     .add-menu {
       display:none;
-      position:absolute; top:100%; left:50%; transform:translateX(-50%);
-      background:var(--panel-bg);
-      padding:10px; border-radius:4px;
+      position:absolute;
+      top:100%; left:50%;
+      transform: translateX(-50%);
+      background: var(--panel-bg);
+      padding:10px;
+      border-radius:4px;
       box-shadow:0 2px 8px rgba(0,0,0,0.5);
-      margin-top:6px; min-width:200px;
-      gap:8px; flex-wrap:wrap; z-index:1000;
+      margin-top:6px;
+      min-width:200px;
+      gap:8px;
+      flex-wrap:wrap;
+      z-index:1000;
     }
     .add-menu-title {
-      width:100%; color:var(--text-light);
-      margin-bottom:6px; font-size:14px;
+      width:100%;
+      color:var(--text-light);
+      margin-bottom:6px;
+      font-size:14px;
     }
     .add-option {
-      background:var(--button-green); color:#fff;
-      border:none; padding:6px 10px; border-radius:4px;
-      font-size:14px; font-weight:600;
-      flex:1; text-align:center; cursor:pointer;
+      background:var(--button-green);
+      color:#fff;
+      border:none;
+      padding:6px 10px;
+      border-radius:4px;
+      font-size:14px;
+      font-weight:600;
+      flex:1;
+      text-align:center;
+      cursor:pointer;
     }
 
-    /* ===== LAYOUT ===== */
-    .main { flex:1; display:flex; overflow:auto; }
-    .game { flex:1; padding:20px; position:relative; }
+    /* ---- LAYOUT ---- */
+    .main {
+      flex:1;
+      display:flex;
+      overflow-y:auto;
+    }
+    .game {
+      flex:1;
+      padding:20px;
+      position:relative;
+    }
     .sidebar {
-      width:280px; background:var(--panel-bg);
-      padding:20px; display:flex; flex-direction:column; gap:12px;
+      width:280px;
+      background:var(--panel-bg);
+      padding:20px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
     }
 
-    /* ===== MODE TOGGLE ===== */
+    /* ---- MODE TOGGLE ---- */
     .mode-toggle {
-      display:flex; border:1px solid var(--input-bg);
-      border-radius:20px; overflow:hidden; margin-bottom:12px;
+      display:flex;
+      border:1px solid var(--input-bg);
+      border-radius:20px;
+      overflow:hidden;
+      margin-bottom:8px; /* slightly reduced */
     }
     .mode-btn {
-      flex:1; padding:6px 16px; text-align:center;
-      background:var(--input-bg); color:var(--text-light);
-      font-weight:600; font-size:14px; cursor:pointer;
+      flex:1;
+      padding:6px 16px;
+      cursor:pointer;
+      background:var(--input-bg);
+      color:var(--text-light);
+      font-weight:600;
+      font-size:14px;
+      text-align:center;
       user-select:none;
     }
     .mode-btn.active {
-      background:var(--button-blue); color:#fff;
+      background:var(--button-blue);
+      color:#fff;
     }
 
-    /* ===== CONTROLS ===== */
-    .control { display:flex; flex-direction:column; gap:6px; }
-    .control label { color:var(--text-secondary); font-size:14px; }
-    .control input, .control select {
-      padding:10px; background:var(--input-bg);
-      border:none; border-radius:4px;
-      color:var(--text-light); font-size:16px;
+    /* ---- CONTROLS ---- */
+    .control {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
     }
-    .extras { display:flex; gap:8px; }
+    .control label {
+      color:var(--text-secondary);
+      font-size:14px;
+    }
+    .control input,
+    .control select {
+      padding:10px;
+      background:var(--input-bg);
+      border:none;
+      border-radius:4px;
+      color:var(--text-light);
+      font-size:16px;
+    }
+    .extras {
+      display:flex;
+      gap:8px;
+    }
     .extras button {
-      flex:1; padding:6px;
-      background:var(--input-bg); border:none; border-radius:4px;
-      color:var(--text-light); font-weight:600; cursor:pointer;
+      flex:1;
+      padding:6px;
+      background:var(--input-bg);
+      border:none;
+      border-radius:4px;
+      color:var(--text-light);
+      font-weight:600;
+      cursor:pointer;
     }
     .button-row {
-      display:flex; gap:8px; margin-top:8px;
+      display:flex;
+      gap:8px;
+      margin-top:8px;
     }
     #betBtn, #cashOutBtn {
-      flex:1; padding:12px; font-size:16px;
-      border:none; border-radius:4px;
-      cursor:pointer; font-weight:600;
+      flex:1;
+      padding:12px;
+      font-size:16px;
+      border:none;
+      border-radius:4px;
+      cursor:pointer;
+      font-weight:600;
     }
-    #betBtn { background:var(--button-blue); color:#fff; }
+    #betBtn {
+      background:var(--button-blue);
+      color:#fff;
+    }
     #cashOutBtn {
-      background:var(--button-green); color:#fff;
+      background:var(--button-green);
+      color:#fff;
       box-shadow:0 0 8px var(--button-green);
       display:none;
     }
 
-    /* ===== GRID & CELLS ===== */
+    /* ---- GRID & CELLS ---- */
     .grid {
       display:grid;
       grid-template-columns:repeat(5,1fr);
-      gap:5px; background:var(--panel-bg);
-      padding:10px; border-radius:4px;
+      gap:5px;
+      background:var(--panel-bg);
+      padding:10px;
+      border-radius:4px;
       user-select:none;
     }
     .cell {
@@ -150,33 +228,34 @@
       border:2px solid var(--cell-border);
       border-radius:4px;
       width:64px; height:64px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:28px; cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      cursor:pointer;
       transition:background-color .2s;
     }
-    .cell.disabled { cursor:default; }
-    .cell.pre { background:var(--button-blue); }
-    .pop { animation:pop .3s ease; }
+    .cell.disabled { cursor: default; }
+    .cell.pre {
+      background: var(--button-blue);
+    }
+    .pop   { animation:pop .3s ease; }
     .shine { animation:shineAnim .8s ease-in-out forwards; }
     .explosion { animation:explodeAnim .8s ease forwards; }
-    @keyframes pop { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
-    @keyframes shineAnim {
-      0%,100%{box-shadow:0 0 5px var(--button-green);}
-      50%{box-shadow:0 0 15px var(--button-green);}
-    }
-    @keyframes explodeAnim {
-      0%{transform:scale(1);opacity:1;}
-      50%{transform:scale(1.5);opacity:0.8;}
-      100%{transform:scale(0);opacity:0;}
-    }
+    @keyframes pop       { 0%,100%{transform:scale(1);} 50%{transform:scale(1.2);} }
+    @keyframes shineAnim { 0%,100%{box-shadow:0 0 5px var(--button-green);} 50%{box-shadow:0 0 15px var(--button-green);} }
+    @keyframes explodeAnim { 0%{transform:scale(1);opacity:1;} 50%{transform:scale(1.5);opacity:0.8;}100%{transform:scale(0);opacity:0;} }
 
-    /* ===== RESULT OVERLAY ===== */
+    /* ---- RESULT OVERLAY ---- */
     .overlay {
-      position:absolute; top:50%; left:50%;
+      position:absolute;
+      top:50%; left:50%;
       transform:translate(-50%,-50%);
       background:var(--overlay-bg);
-      padding:20px 30px; border-radius:8px;
-      text-align:center; display:none;
+      padding:20px 30px;
+      border-radius:8px;
+      text-align:center;
+      display:none;
       border:2px solid transparent;
     }
     .overlay.win {
@@ -188,19 +267,47 @@
       box-shadow:0 0 12px var(--button-cash);
     }
     .overlay .mult {
-      font-size:32px; font-weight:700; color:#fff;
+      font-size:32px;
+      font-weight:700;
+      color:#fff;
     }
     .overlay .win {
-      font-size:18px; margin-top:8px; color:#fff;
+      font-size:18px;
+      margin-top:8px;
+      color:#fff;
     }
 
-    /* ===== RESPONSIVE ===== */
+    /* ---- NOTIFICATION ---- */
+    .notification {
+      position:absolute;
+      top:40%; left:50%;
+      transform:translate(-50%,-50%);
+      background:var(--button-cash);
+      color:#fff;
+      padding:20px 40px;
+      border-radius:8px;
+      font-size:24px;
+      display:none;
+      z-index:10;
+    }
+    .notification.win {
+      background:var(--button-green);
+    }
+
+    /* ---- RESPONSIVE ---- */
     @media(max-width:768px){
-      body { padding-bottom:calc(70px + env(safe-area-inset-bottom)); }
-      .main { flex-direction:column; }
-      .game { padding:20px 15px; }
+      body {
+        /* keep scrollable */
+      }
+      .main {
+        flex-direction:column;
+      }
+      .game {
+        padding:20px 15px;
+      }
       .sidebar {
-        position:static; width:100%; padding:10px 20px;
+        width:100%;
+        margin-top:20px;   /* extra spacing under the grid */
       }
     }
   </style>
@@ -228,6 +335,7 @@
         <div class="mult" id="overlayMult">x0.00</div>
         <div class="win"  id="overlayWin">$0.00</div>
       </div>
+      <div class="notification" id="notification"></div>
     </div>
 
     <div class="sidebar">
@@ -256,22 +364,22 @@
   </div>
 
   <script>
-    const
-      gridEl      = document.getElementById('grid'),
-      overlay     = document.getElementById('overlay'),
-      multEl      = document.getElementById('overlayMult'),
-      winEl       = document.getElementById('overlayWin'),
-      betBtn      = document.getElementById('betBtn'),
-      cashBtn     = document.getElementById('cashOutBtn'),
-      addBtn      = document.getElementById('addMoneyBtn'),
-      betAmtInput = document.getElementById('betAmount'),
-      minesSel    = document.getElementById('mines'),
-      balanceEl   = document.getElementById('balance'),
-      addMenu     = document.getElementById('addMenu'),
-      addOptions  = document.querySelectorAll('.add-option'),
-      manualBtn   = document.getElementById('manualBtn'),
-      autoBtn     = document.getElementById('autoBtn'),
-      chaChing    = document.getElementById('chaChingSound');
+    const gridEl      = document.getElementById('grid'),
+          overlay     = document.getElementById('overlay'),
+          multEl      = document.getElementById('overlayMult'),
+          winEl       = document.getElementById('overlayWin'),
+          notification= document.getElementById('notification'),
+          betBtn      = document.getElementById('betBtn'),
+          cashBtn     = document.getElementById('cashOutBtn'),
+          addBtn      = document.getElementById('addMoneyBtn'),
+          betAmtInput = document.getElementById('betAmount'),
+          minesSel    = document.getElementById('mines'),
+          balanceEl   = document.getElementById('balance'),
+          addMenu     = document.getElementById('addMenu'),
+          addOptions  = document.querySelectorAll('.add-option'),
+          manualBtn   = document.getElementById('manualBtn'),
+          autoBtn     = document.getElementById('autoBtn'),
+          chaChing    = document.getElementById('chaChingSound');
 
     let cells       = [],
         mines       = new Set(),
@@ -286,7 +394,7 @@
         preselected = new Set(),
         totalCells  = 25;
 
-    // populate mines dropdown
+    // Populate mines dropdown
     for(let i=1;i<=24;i++){
       const o=document.createElement('option');
       o.value=i; o.textContent=i;
@@ -305,7 +413,8 @@
       const r=e-s; let t0=null;
       function step(ts){
         if(!t0)t0=ts;
-        const p=Math.min((ts-t0)/dur,1), v=s+r*p;
+        const p=Math.min((ts-t0)/dur,1),
+              v=s+r*p;
         el.textContent=v.toFixed(2)+suf;
         if(p<1) requestAnimationFrame(step);
       }
@@ -326,14 +435,14 @@
       setTimeout(()=>overlay.style.display='none',1000);
     }
 
-    // add-money popup
+    // Add‐money popup
     addMenu.style.display='none';
-    addBtn.onclick=()=>addMenu.style.display= addMenu.style.display==='flex'?'none':'flex';
+    addBtn.onclick=()=>addMenu.style.display=addMenu.style.display==='flex'?'none':'flex';
     addOptions.forEach(b=>b.onclick=()=>{
       balance+=+b.dataset.amt; updateBalance(balance);
     });
 
-    // mode toggle
+    // Mode toggle & reset
     function resetBoard(){
       preselected.clear();
       revealed=0; currentMul=lastMul=1;
@@ -356,13 +465,12 @@
       resetBoard();
     };
 
-    // grid & mines
+    // Grid & mines
     function createGrid(){
       gridEl.innerHTML=''; cells=[];
       for(let i=0;i<totalCells;i++){
         let c=document.createElement('div');
-        c.className='cell';
-        c.dataset.idx=i;
+        c.className='cell'; c.dataset.idx=i;
         c.onclick=e=>{
           if(!activeRound && !isManual){
             let idx=+c.dataset.idx;
@@ -405,6 +513,7 @@
       });
     }
 
+    // Manual reveal
     function onCellClick(e){
       let c=e.currentTarget, idx=+c.dataset.idx;
       if(c.classList.contains('disabled')) return;
@@ -441,6 +550,7 @@
       }
     }
 
+    // Bet
     betBtn.onclick=()=>{
       if(activeRound) return;
       let bet=parseFloat(betAmtInput.value)||0;
@@ -463,7 +573,8 @@
       createGrid(); setupMines();
 
       if(!isManual){
-        let lose=false, mul=1, i=0;
+        // Auto
+        let lose=false, mul=1, count=0;
         preselected.forEach(idx=>{
           let c=cells[idx];
           if(!c.classList.contains('disabled')){
@@ -478,9 +589,9 @@
               c.classList.add('shine');
               setTimeout(()=>c.classList.remove('shine'),800);
               let m=+minesSel.value;
-              let factor=(totalCells-i)/(totalCells-m-i);
+              let factor=(totalCells-count)/(totalCells-m-count);
               mul*=factor;
-              i++;
+              count++;
             }
           }
         });
@@ -501,11 +612,12 @@
           betBtn.disabled=false;
           betAmtInput.disabled=false;
           minesSel.disabled=false;
-          betBtn.textContent='Bet Again';
+          betBtn.textContent='Bet';
         },1500);
       }
     };
 
+    // Cash Out (manual)
     cashBtn.onclick=()=>{
       if(!activeRound) return;
       activeRound=false;
@@ -520,6 +632,7 @@
       cashBtn.style.display='none';
     };
 
+    // Half / Double shortcuts
     document.getElementById('half').onclick=()=>{
       let v=parseFloat(betAmtInput.value)||0;
       betAmtInput.value=(v/2).toFixed(2);
@@ -529,8 +642,10 @@
       betAmtInput.value=(v*2).toFixed(2);
     };
 
-    // initialize
-    createGrid(); setupMines(); updateBalance(balance);
+    // Initialize
+    createGrid();
+    setupMines();
+    updateBalance(balance);
   </script>
 </body>
 </html>
