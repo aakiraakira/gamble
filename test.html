@@ -96,10 +96,8 @@
 
     /* MODE TOGGLE */
     .mode-toggle {
-      display:flex;
-      border:1px solid var(--input-bg);
-      border-radius:20px; overflow:hidden;
-      margin-bottom:4px;
+      display:flex; border:1px solid var(--input-bg);
+      border-radius:20px; overflow:hidden; margin-bottom:4px;
     }
     .mode-btn {
       flex:1; padding:6px 16px; text-align:center;
@@ -107,9 +105,7 @@
       color:var(--text-light); font-weight:600; font-size:14px;
       user-select:none;
     }
-    .mode-btn.active {
-      background:var(--button-blue); color:#fff;
-    }
+    .mode-btn.active { background:var(--button-blue); color:#fff; }
 
     /* BET ROW */
     .bet-row { display:flex; align-items:center; gap:4px; }
@@ -228,6 +224,7 @@
   </style>
 </head>
 <body>
+
   <header class="header">
     <div class="balance-add">
       <span class="balance-label">Balance</span>
@@ -287,6 +284,9 @@
   </div>
 
   <script>
+    // 8% house edge
+    const HOUSE_EDGE = 0.92;
+
     const
       gridEl       = document.getElementById('grid'),
       overlay      = document.getElementById('overlay'),
@@ -326,7 +326,7 @@
         lastPot      = 0,
         autoRunning  = false;
 
-    // fill dropdown
+    // fill mines dropdown
     for(let i=1;i<=24;i++){
       const o=document.createElement('option');
       o.value=i; o.textContent=i;
@@ -353,7 +353,7 @@
     updateBalance(balance);
     updateProfitDisplay();
 
-    // add-money
+    // add-money popup
     addMenu.style.display='none';
     addBtn.onclick=e=>{
       e.stopPropagation();
@@ -389,7 +389,7 @@
     function animateCount(el,s,e,sfx='x',dur=400){
       const range=e-s; let t0=null;
       function step(ts){
-        if(!t0) t0=ts;
+        if(!t0)t0=ts;
         const p=Math.min((ts-t0)/dur,1),
               v=s+range*p;
         el.textContent=v.toFixed(2)+sfx;
@@ -412,7 +412,6 @@
       setTimeout(()=>overlay.style.display='none',1000);
     }
 
-    // grid & mines
     function createGrid(){
       gridEl.innerHTML=''; cells=[];
       for(let i=0;i<totalCells;i++){
@@ -457,7 +456,6 @@
       });
     }
 
-    // reset board
     function resetBoard(clearPre=true){
       if(clearPre) preselected.clear();
       revealed=0; currentMul=lastMul=1; lastPot=0;
@@ -507,10 +505,9 @@
         chaChing.currentTime=0; chaChing.play();
         confetti({particleCount:100,spread:60,origin:{y:0.2}});
         const m=+minesSel.value;
-        const factor=(totalCells-(revealed-1))/
-                     (totalCells-m-(revealed-1));
-        currentMul*=factor;
-        const pot=roundBet*currentMul;
+        const fair=(totalCells-(revealed-1))/(totalCells-m-(revealed-1));
+        currentMul *= fair * HOUSE_EDGE;
+        const pot = roundBet * currentMul;
         profit += (pot - lastPot);
         lastPot=pot; updateProfitDisplay();
         updateBalance(baseBalance+pot);
@@ -556,54 +553,57 @@
       minesSel.disabled=false;
     };
 
-    // auto loop
+    // fixed auto loop
     function runAutoIteration(){
       if(!autoRunning) return;
       if(balance < roundBet){
         showNotification('Not enough funds','loss');
-        autoRunning=false;
-        manualBtn.disabled=false;
-        autoBtn.disabled=false;
-        betAmtInput.disabled=false;
-        minesSel.disabled=false;
-        updateButtons();
+        stopBtn.onclick();
         return;
       }
-      balance-=roundBet; updateBalance(balance);
+      // each iteration has new board
+      createGrid();
+      setupMines();
+
+      balance-=roundBet;
+      updateBalance(balance);
+
       let lose=false, mul=1, i=0;
+      const m = +minesSel.value;
       preselected.forEach(idx=>{
-        const c=cells[idx];
-        if(!c.classList.contains('disabled')){
-          c.classList.add('disabled');
-          if(mines.has(idx)){
-            lose=true;
-            c.textContent='💣'; c.classList.add('explosion');
-          } else {
-            c.textContent='💎'; c.classList.add('shine');
-            const m=+minesSel.value,
-                  f=(totalCells-i)/(totalCells-m-i);
-            mul*=f; i++;
-          }
+        const c = cells[idx];
+        c.classList.add('disabled');
+        if(mines.has(idx)){
+          lose = true;
+          c.textContent='💣';
+          c.classList.add('explosion');
+          setTimeout(()=>c.classList.remove('explosion'),800);
+        } else {
+          c.textContent='💎';
+          c.classList.add('shine');
+          setTimeout(()=>c.classList.remove('shine'),800);
+          const factor = ((totalCells - i) / (totalCells - m - i)) * HOUSE_EDGE;
+          mul *= factor;
+          i++;
         }
       });
+
       if(lose){
         showResult('loss',0,roundBet);
         profit -= roundBet;
       } else {
-        const winAmt=roundBet*mul;
-        balance+=winAmt; updateBalance(balance);
+        const winAmt = roundBet * mul;
+        balance += winAmt;
+        updateBalance(balance);
         showResult('win',mul,winAmt);
         profit += (winAmt - roundBet);
       }
       updateProfitDisplay();
+
       setTimeout(()=>{
-        revealAll();
         resetBoard(false);
-        if(autoRunning){
-          createGrid(); setupMines();
-          runAutoIteration();
-        }
-      },500);
+        if(autoRunning) runAutoIteration();
+      }, 500);
     }
 
     // Start auto
@@ -635,7 +635,7 @@
       updateButtons();
     };
 
-    // toggle handlers now call updateButtons()
+    // mode toggle
     manualBtn.onclick=()=>{
       if(activeRound)return;
       isManual=true;
