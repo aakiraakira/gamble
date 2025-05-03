@@ -284,9 +284,6 @@
   </div>
 
   <script>
-    // 8% house edge
-    const HOUSE_EDGE = 0.92;
-
     const
       gridEl       = document.getElementById('grid'),
       overlay      = document.getElementById('overlay'),
@@ -326,7 +323,7 @@
         lastPot      = 0,
         autoRunning  = false;
 
-    // fill mines dropdown
+    // populate mines dropdown
     for(let i=1;i<=24;i++){
       const o=document.createElement('option');
       o.value=i; o.textContent=i;
@@ -480,20 +477,27 @@
       }
     }
 
+    // 8% extra‐mine chance
+    function isHouseEdgeMine() {
+      return Math.random() < 0.08;
+    }
+
     // manual cell click
     function onCellClick(e){
       const c=e.currentTarget, idx=+c.dataset.idx;
       if(c.classList.contains('disabled')) return;
       c.classList.add('disabled','pop');
       c.addEventListener('animationend',()=>c.classList.remove('pop'),{once:true});
-      if(mines.has(idx)){
+      const naturalMine = mines.has(idx);
+      const edgeMine    = !naturalMine && isHouseEdgeMine();
+      if(naturalMine || edgeMine){
         activeRound=false;
         c.textContent='💣'; c.classList.add('explosion');
         setTimeout(()=>c.classList.remove('explosion'),800);
         revealAll();
         showResult('loss',0,roundBet);
         balance=baseBalance; updateBalance(balance);
-        profit -= (lastPot + roundBet);
+        profit -= (roundBet + lastPot);
         lastPot=0; updateProfitDisplay();
         betBtn.disabled=false;
         betAmtInput.disabled=false;
@@ -505,9 +509,9 @@
         chaChing.currentTime=0; chaChing.play();
         confetti({particleCount:100,spread:60,origin:{y:0.2}});
         const m=+minesSel.value;
-        const fair=(totalCells-(revealed-1))/(totalCells-m-(revealed-1));
-        currentMul *= fair * HOUSE_EDGE;
-        const pot = roundBet * currentMul;
+        const factor=(totalCells-(revealed-1))/(totalCells-m-(revealed-1));
+        currentMul*=factor;
+        const pot=roundBet*currentMul;
         profit += (pot - lastPot);
         lastPot=pot; updateProfitDisplay();
         updateBalance(baseBalance+pot);
@@ -561,9 +565,7 @@
         stopBtn.onclick();
         return;
       }
-      // each iteration has new board
-      createGrid();
-      setupMines();
+      createGrid(); setupMines();
 
       balance-=roundBet;
       updateBalance(balance);
@@ -573,16 +575,16 @@
       preselected.forEach(idx=>{
         const c = cells[idx];
         c.classList.add('disabled');
-        if(mines.has(idx)){
+        const naturalMine = mines.has(idx);
+        const edgeMine    = !naturalMine && isHouseEdgeMine();
+        if(naturalMine || edgeMine){
           lose = true;
           c.textContent='💣';
           c.classList.add('explosion');
-          setTimeout(()=>c.classList.remove('explosion'),800);
         } else {
           c.textContent='💎';
           c.classList.add('shine');
-          setTimeout(()=>c.classList.remove('shine'),800);
-          const factor = ((totalCells - i) / (totalCells - m - i)) * HOUSE_EDGE;
+          const factor = (totalCells-i)/(totalCells-m-i);
           mul *= factor;
           i++;
         }
@@ -603,7 +605,7 @@
       setTimeout(()=>{
         resetBoard(false);
         if(autoRunning) runAutoIteration();
-      }, 500);
+      },500);
     }
 
     // Start auto
