@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functional Analytics Dashboard</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for beautiful charts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- date-fns for date manipulation -->
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+    
+    <script>
+        // Custom Tailwind theme configuration
+        tailwind.config = {
+            darkMode: 'class', // Enable dark mode using a class
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark-bg': '#0F172A', // Main dark background
+                        'dark-surface': '#1E293B', // Card and modal backgrounds
+                        'dark-border': '#334155',
+                        'dark-text-primary': '#F8FAFC',
+                        'dark-text-secondary': '#94A3B8',
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom styles for a polished look and feel */
+        body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .modal { display: none; animation: fadeIn 0.3s ease-out; }
+        .modal-content { animation: slideInUp 0.4s ease-out; }
+        .loader { border-top-color: #3b82f6; animation: spin 1s linear infinite; }
+        th.sortable:hover { cursor: pointer; background-color: #f9fafb; }
+        .dark th.sortable:hover { background-color: #334155; }
+        th.sortable .sort-indicator { opacity: 0.3; transition: opacity 0.2s; }
+        th.sortable:hover .sort-indicator { opacity: 0.7; }
+        th.sort-asc .sort-indicator,
+        th.sort-desc .sort-indicator { opacity: 1; }
+
+        .switcher-btn { transition: background-color 0.2s, color 0.2s; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 500; }
+        .switcher-btn.active { background-color: #3b82f6; color: white; }
+        .switcher-btn:not(.active) { background-color: transparent; }
+        .dark .switcher-btn:not(.active) { color: #94a3b8; }
+        
+        .table-tab-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+         .table-tab-btn.active {
+            background-color: #e5e7eb;
+            color: #111827;
+        }
+        .dark .table-tab-btn.active {
+            background-color: #4b5563;
+            color: #f9fafb;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #9ca3af; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-dark-bg font-sans text-gray-800 dark:text-dark-text-primary">
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-20 bg-white dark:bg-dark-surface p-4 flex flex-col items-center space-y-8 shadow-xl fixed h-full z-20">
+            <div class="text-blue-600 dark:text-blue-400 font-extrabold text-3xl">W</div>
+            <nav class="flex flex-col items-center space-y-6 flex-grow">
+                <a href="#" class="p-3 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg" title="Analytics"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 13h18"/><path d="M16 3v18"/></svg></a>
+                <a href="#" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg" title="Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
+            </nav>
+            <div id="theme-toggle" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg cursor-pointer" title="Toggle Theme"></div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20">
+            <header class="flex flex-wrap justify-between items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text-primary">Analytics</h1>
+                    <p class="text-gray-500 dark:text-dark-text-secondary">Dashboard / Analytics</p>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="add-entry-button" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Transaction</button>
+                </div>
+            </header>
+            
+            <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
+            
+            <div id="dashboard-content" class="space-y-8 hidden">
+                <!-- Stat Cards & Revenue Chart -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div class="xl:col-span-1 space-y-6">
+                        <div class="flex items-center bg-white dark:bg-dark-surface border border-gray-200 dark:border-dark-border rounded-lg p-1 space-x-1">
+                             <button class="switcher-btn" data-view="Actual">Actual</button>
+                             <button class="switcher-btn" data-view="Projected">Projected</button>
+                        </div>
+                        <div id="stats-grid" class="grid grid-cols-2 gap-6"></div>
+                    </div>
+                    <div class="xl:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                            <h2 class="text-xl font-bold">Revenue Statistics</h2>
+                            <select id="revenue-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                                <option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="Monthly" selected>Monthly</option>
+                            </select>
+                        </div>
+                        <div class="h-64"><canvas id="revenue-line-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Mid-row Content -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                     <div class="lg:col-span-1 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border grid grid-cols-2 gap-x-4">
+                         <div class="col-span-1 text-center">
+                             <h2 class="text-md font-bold mb-2">By Source</h2>
+                             <div class="h-40"><canvas id="source-pie-chart" class="mx-auto"></canvas></div>
+                         </div>
+                         <div class="col-span-1 text-center">
+                              <h2 class="text-md font-bold mb-2">By Business</h2>
+                             <div class="h-40"><canvas id="business-pie-chart" class="mx-auto"></canvas></div>
+                         </div>
+                         <div id="business-breakdown-container" class="col-span-2 mt-4 pt-4 border-t border-gray-200 dark:border-dark-border"></div>
+                    </div>
+                    <div class="lg:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
+                        <div class="flex justify-between items-center mb-4">
+                             <h2 class="text-xl font-bold">Daily Sales Activity</h2>
+                              <select id="daily-sales-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                                <option value="7">Last 7 Days</option><option value="30" selected>Last 30 Days</option><option value="90">Last 90 Days</option>
+                            </select>
+                        </div>
+                        <div class="h-[280px]"><canvas id="daily-sales-bar-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Transaction Table -->
+                <div id="transaction-table-container" class="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-entry-modal" class="modal fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-dark-surface rounded-xl shadow-2xl w-full max-w-lg border border-gray-200 dark:border-dark-border">
+            <div class="flex justify-between items-center p-6 border-b border-gray-200 dark:border-dark-border">
+                <h2 class="text-2xl font-bold">New Transaction</h2>
+                <button id="modal-close-button" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div class="p-6">
+                <div id="modal-error" class="bg-red-500/10 text-red-500 p-3 rounded-md mb-4 hidden font-medium"></div>
+                <div class="flex items-center bg-gray-100 dark:bg-slate-800 rounded-lg p-1 space-x-1 mb-6">
+                    <button class="switcher-btn flex-1" data-type="revenue">Revenue</button>
+                    <button class="switcher-btn flex-1" data-type="expense">Expense</button>
+                </div>
+                <form id="add-entry-form" class="space-y-4"></form>
+            </div>
+        </div>
+    </div>
+    <div id="delete-modal" class="modal fixed inset-0 bg-black/70 flex justify-center items-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-dark-surface rounded-xl shadow-2xl p-8 w-full max-w-md text-center border border-gray-200 dark:border-dark-border">
+            <h3 class="text-xl font-bold mb-4">Confirm Deletion</h3>
+            <p class="dark:text-dark-text-secondary mb-8">This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="delete-cancel-button" class="w-full px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-dark-border dark:text-dark-text-primary dark:hover:bg-gray-600 font-semibold">Cancel</button>
+                <button type="button" id="delete-confirm-button" class="w-full px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold">Delete</button>
+            </div>
+        </div>
+    </div>
+    <datalist id="tags-datalist"></datalist>
+
+    <script>
+    (() => {
+        const { parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subDays, isAfter } = dateFns;
+
+        const initialData = [
+            { id: '1', itemName: 'Alice Johnson', business: 'Web Design', date: '2025-06-26', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 300, projectedExpense: 350, status: 'Recurring', amount: 1500 },
+            { id: '2', itemName: 'Office Supplies', business: 'Overhead', date: '2025-06-24', type: 'expense', sector: 'General', customerSource: 'N/A', fulfillmentExpense: 0, projectedExpense: 150, status: 'Actual', amount: 150 },
+            { id: '3', itemName: 'Bob Williams', business: 'SEO', date: '2025-06-20', type: 'revenue', sector: 'Marketing', customerSource: 'Google Ads', fulfillmentExpense: 200, projectedExpense: 200, status: 'New Customer', amount: 800 },
+            { id: '4', itemName: 'Figma Subscription', business: 'Software', date: '2025-06-18', type: 'expense', sector: 'Tools', customerSource: 'N/A', fulfillmentExpense: 0, projectedExpense: 50, status: 'Recurring', amount: 50 },
+            { id: '5', itemName: 'Charlie Brown', business: 'Web Design', date: '2025-06-15', type: 'revenue', sector: 'E-commerce', customerSource: 'Instagram', fulfillmentExpense: 800, projectedExpense: 900, status: 'Warm Lead', amount: 2500 },
+            { id: '6', itemName: 'David Davis', business: 'Photography', date: '2025-05-28', type: 'revenue', sector: 'Events', customerSource: 'Facebook', fulfillmentExpense: 100, projectedExpense: 120, status: 'Recurring', amount: 750 },
+        ];
+
+        const state = {
+            entries: [], theme: 'light',
+            ui: {
+                activeTableTab: 'all', revenueChartTimespan: 'Monthly', statsView: 'Actual',
+                sort: { key: 'date', order: 'desc' }, searchQuery: '', activeModalForm: 'revenue',
+                dailySalesTimespan: 30,
+            },
+            chartInstances: {},
+        };
+
+        const DOMElements = {
+            html: document.documentElement, loader: document.getElementById('loader'), dashboardContent: document.getElementById('dashboard-content'),
+            themeToggle: document.getElementById('theme-toggle'), statsGrid: document.getElementById('stats-grid'), revenueLineChart: document.getElementById('revenue-line-chart'),
+            dailySalesBarChart: document.getElementById('daily-sales-bar-chart'), sourcePieChart: document.getElementById('source-pie-chart'),
+            businessPieChart: document.getElementById('business-pie-chart'), transactionTableContainer: document.getElementById('transaction-table-container'),
+            businessBreakdownContainer: document.getElementById('business-breakdown-container'), addEntryButton: document.getElementById('add-entry-button'),
+            revenueTimespan: document.getElementById('revenue-timespan'), dailySalesTimespan: document.getElementById('daily-sales-timespan'),
+            statViewButtons: document.querySelectorAll('[data-view]'), tagsDataList: document.getElementById('tags-datalist'),
+            addEntryModal: {
+                modal: document.getElementById('add-entry-modal'), form: document.getElementById('add-entry-form'),
+                closeButton: document.getElementById('modal-close-button'), error: document.getElementById('modal-error'),
+                typeButtons: document.querySelectorAll('[data-type]'),
+            },
+            deleteModal: { modal: document.getElementById('delete-modal'), confirmButton: document.getElementById('delete-confirm-button'), cancelButton: document.getElementById('delete-cancel-button') },
+        };
+
+        const formatCurrency = (v) => `$${(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formatPercent = (v) => `${(v * 100).toFixed(1)}%`;
+        const saveState = () => { localStorage.setItem('dashboard-entries-v4', JSON.stringify(state.entries.map(({dateObj, ...r}) => r))); localStorage.setItem('dashboard-theme-v4', state.theme); };
+        const loadState = () => {
+            const saved = localStorage.getItem('dashboard-entries-v4');
+            state.entries = (saved ? JSON.parse(saved) : initialData).map(e => ({...e, dateObj: parseISO(e.date)}));
+            state.theme = localStorage.getItem('dashboard-theme-v4') || 'light';
+        };
+
+        const calculateStats = (view = 'Actual') => {
+            const revenue = state.entries.filter(e => e.type === 'revenue').reduce((s, e) => s + e.amount, 0);
+            const actualExpenses = state.entries.filter(e => e.type === 'expense').reduce((s, e) => s + e.amount, 0);
+            const projectedExpenses = state.entries.reduce((s, e) => s + (e.projectedExpense || 0), 0);
+            const totalExpenses = view === 'Projected' ? projectedExpenses : actualExpenses;
+            const netProfit = revenue - totalExpenses;
+            const profitMargin = revenue > 0 ? netProfit / revenue : 0;
+            return { revenue, expenses: totalExpenses, netProfit, profitMargin };
+        };
+        
+        const chartStyler = {
+            grid: () => state.theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            labels: () => state.theme === 'dark' ? '#94A3B8' : '#64748b',
+            legend: () => state.theme === 'dark' ? '#F8FAFC' : '#334155',
+        };
+        const renderChart = (id, config) => {
+            const ctx = document.getElementById(id)?.getContext('2d');
+            if (!ctx) return;
+            if (state.chartInstances[id]) state.chartInstances[id].destroy();
+            state.chartInstances[id] = new Chart(ctx, config);
+        }
+        const renderAllCharts = () => {
+            renderMainRevenueChart();
+            renderDailySalesChart();
+            renderSourcePieChart();
+            renderBusinessPieChart();
+        };
+
+        const renderMainRevenueChart = () => {
+            const getGroupedData = () => {
+                if (!state.entries.length) return { labels: [], revenue: [], expenses: [] };
+                const sorted = [...state.entries].sort((a,b) => a.dateObj - b.dateObj);
+                const first = sorted[0].dateObj, last = sorted[sorted.length - 1].dateObj;
+                let interval, fmt, periodFn;
+                switch (state.ui.revenueChartTimespan) {
+                    case 'Daily': interval = eachDayOfInterval({start:first, end:last}); fmt = 'MMM d'; periodFn = (d) => d; break;
+                    case 'Weekly': interval = eachWeekOfInterval({start:first, end:last},{weekStartsOn:1}); fmt = "'Wk of' MMM d"; periodFn = (d) => startOfWeek(d, {weekStartsOn:1}); break;
+                    default: interval = eachMonthOfInterval({start:first, end:last}); fmt = 'MMM yy'; periodFn = startOfMonth; break;
+                }
+                const map = new Map(interval.map(d => [format(d, fmt), { revenue: 0, expenses: 0 }]));
+                for (const entry of sorted) {
+                    const key = format(periodFn(entry.dateObj), fmt);
+                    if (map.has(key)) {
+                        if (entry.type === 'revenue') map.get(key).revenue += entry.amount; else map.get(key).expenses += entry.amount;
+                    }
+                }
+                return { labels: [...map.keys()], revenue: [...map.values()].map(v => v.revenue), expenses: [...map.values()].map(v => v.expenses) };
+            };
+            const { labels, revenue, expenses } = getGroupedData();
+            renderChart('revenue-line-chart', { type: 'line', data: { labels, datasets: [ { label: 'Revenue', data: revenue, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6 }, { label: 'Expenses', data: expenses, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6 } ] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: chartStyler.labels(), callback: v => `$${v/1000}k` }, grid: { color: chartStyler.grid() }, border: { dash: [4, 4] } }, x: { ticks: { color: chartStyler.labels() }, grid: { display: false } } }, plugins: { legend: { labels: { color: chartStyler.legend() } }, tooltip: { mode: 'index', intersect: false } } } });
+        };
+        const renderDailySalesChart = () => {
+            const cutoffDate = subDays(new Date(), state.ui.dailySalesTimespan);
+            const recentEntries = state.entries.filter(e => isAfter(e.dateObj, cutoffDate) && e.type === 'revenue');
+            const salesByDay = recentEntries.reduce((acc, e) => {
+                const day = format(e.dateObj, 'MMM d');
+                acc[day] = (acc[day] || 0) + e.amount;
+                return acc;
+            }, {});
+            const labels = Object.keys(salesByDay);
+            const data = Object.values(salesByDay);
+            renderChart('daily-sales-bar-chart', { type: 'bar', data: { labels, datasets: [{ label: 'Sales', data, backgroundColor: '#818cf8', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { ticks: { color: chartStyler.labels() }, grid: { color: chartStyler.grid() } }, x: { ticks: { color: chartStyler.labels() }, grid: { display: false } } }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.dataset.label}: ${formatCurrency(c.raw)}` } } } } });
+        };
+        const createPieChartConfig = (dataMap) => ({
+            type: 'doughnut',
+            data: { labels: [...dataMap.keys()], datasets: [{ data: [...dataMap.values()], backgroundColor: ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#facc15', '#38bdf8'], borderWidth: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => `${c.label}: ${formatCurrency(c.raw)}` } } } }
+        });
+        const renderSourcePieChart = () => {
+            const sourceMap = state.entries.filter(e => e.type === 'revenue' && e.customerSource !== 'N/A').reduce((acc, e) => acc.set(e.customerSource, (acc.get(e.customerSource) || 0) + e.amount), new Map());
+            renderChart('source-pie-chart', createPieChartConfig(sourceMap));
+        };
+        const renderBusinessPieChart = () => {
+            const businessMap = state.entries.filter(e => e.type === 'revenue').reduce((acc, e) => acc.set(e.business, (acc.get(e.business) || 0) + e.amount), new Map());
+            renderChart('business-pie-chart', createPieChartConfig(businessMap));
+        };
+        
+        const render = () => { renderTheme(); renderStats(); renderAllCharts(); renderBusinessBreakdown(); renderTransactionTable(); saveState(); };
+        const renderTheme = () => {
+            DOMElements.html.classList.toggle('dark', state.theme === 'dark');
+            DOMElements.themeToggle.innerHTML = state.theme === 'dark' ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
+        };
+        const renderStats = () => {
+            const stats = calculateStats(state.ui.statsView);
+            DOMElements.statViewButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.view === state.ui.statsView));
+            DOMElements.statsGrid.innerHTML = `
+                <div class="bg-violet-500/10 dark:bg-violet-500/20 p-4 rounded-xl"><p class="text-sm text-violet-800 dark:text-violet-300">Total Revenue</p><p class="text-2xl font-bold text-violet-900 dark:text-violet-100">${formatCurrency(stats.revenue)}</p></div>
+                <div class="bg-red-500/10 dark:bg-red-500/20 p-4 rounded-xl"><p class="text-sm text-red-800 dark:text-red-300">${state.ui.statsView} Expenses</p><p class="text-2xl font-bold text-red-900 dark:text-red-100">${formatCurrency(stats.expenses)}</p></div>
+                <div class="bg-blue-500/10 dark:bg-blue-500/20 p-4 rounded-xl"><p class="text-sm text-blue-800 dark:text-blue-300">Net Profit</p><p class="text-2xl font-bold text-blue-900 dark:text-blue-100">${formatCurrency(stats.netProfit)}</p></div>
+                <div class="bg-green-500/10 dark:bg-green-500/20 p-4 rounded-xl"><p class="text-sm text-green-800 dark:text-green-300">Profit Margin</p><p class="text-2xl font-bold text-green-900 dark:text-green-100">${formatPercent(stats.profitMargin)}</p></div>
+            `;
+        };
+        const renderBusinessBreakdown = () => {
+            const breakdown = state.entries.reduce((acc, e) => {
+                if(!acc[e.business]) acc[e.business] = { revenue: 0, expenses: 0 };
+                if (e.type === 'revenue') acc[e.business].revenue += e.amount;
+                if (e.type === 'expense') acc[e.business].expenses += e.amount;
+                return acc;
+            }, {});
+            let content = `<h3 class="text-md font-bold mb-2">Business Summary</h3><div class="space-y-2 overflow-y-auto max-h-24 pr-2 text-sm">`;
+            content += Object.keys(breakdown).length ? Object.entries(breakdown).map(([b,d]) => `<div><p class="font-semibold text-gray-700 dark:text-gray-300">${b}</p><div class="flex justify-between text-xs"><span class="text-green-500">Rev: ${formatCurrency(d.revenue)}</span><span class="text-red-500">Exp: ${formatCurrency(d.expenses)}</span></div></div>`).join('') : `<p class="dark:text-dark-text-secondary">No data.</p>`;
+            DOMElements.businessBreakdownContainer.innerHTML = content + `</div>`;
+        };
+        const renderTransactionTable = () => {
+            const tableContainer = DOMElements.transactionTableContainer;
+            if (!tableContainer.querySelector('table')) { // Initial render
+                tableContainer.innerHTML = `
+                    <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                        <h2 class="text-xl font-bold">Recent Activity</h2>
+                        <div class="relative w-full sm:w-64"><svg class="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd" /></svg><input id="search-input" type="text" placeholder="Search transactions..." class="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-dark-border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"></div>
+                        <div id="table-tabs" class="flex items-center border border-gray-200 dark:border-dark-border rounded-lg p-1 space-x-1">${['all', 'revenue', 'expense'].map(t => `<button class="table-tab-btn" data-tab="${t}">${t.charAt(0).toUpperCase() + t.slice(1)}</button>`).join('')}</div>
+                    </div>
+                    <div class="overflow-x-auto"><table class="w-full text-left"><thead id="table-head"></thead><tbody id="table-body"></tbody></table></div>`;
+                tableContainer.querySelector('#search-input').addEventListener('input', handleSearch);
+                tableContainer.querySelector('#table-tabs').addEventListener('click', handleTabClick);
+                tableContainer.querySelector('#table-head').addEventListener('click', handleSortClick);
+            }
+            // Update active tab
+            tableContainer.querySelectorAll('.table-tab-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === state.ui.activeTableTab));
+            // Render headers
+            const { key, order } = state.ui.sort;
+            const renderHeader = (k, t) => { const isCurr = key===k; return `<th class="p-3 font-semibold sortable ${isCurr ? `sort-${order}` : ''}" data-sort-key="${k}"><span class="flex items-center gap-2">${t}<span class="sort-indicator">${isCurr&&order==='asc'?'▲':'▼'}</span></span></th>`; };
+            tableContainer.querySelector('#table-head').innerHTML = `<tr class="text-sm dark:text-dark-text-secondary border-b dark:border-dark-border">${renderHeader('itemName', 'Customer/Item')}${renderHeader('amount', 'Amount')}${renderHeader('netProfit', 'Net Profit')}${renderHeader('netMargin', 'Net Margin')}${renderHeader('date', 'Date')}${renderHeader('status', 'Status')}<th class="p-3 font-semibold">Actions</th></tr>`;
+            // Filter and sort data
+            const query = state.ui.searchQuery.toLowerCase();
+            const filtered = state.entries.filter(e => (state.ui.activeTableTab === 'all' || e.type === state.ui.activeTableTab) && (!query || [e.itemName,e.business,e.customerSource,e.status,e.sector].join(' ').toLowerCase().includes(query)));
+            const sorted = filtered.sort((a,b) => {
+                let valA, valB;
+                if (key === 'netProfit') { valA = a.type==='revenue'?a.amount-a.fulfillmentExpense:-Infinity; valB = b.type==='revenue'?b.amount-b.fulfillmentExpense:-Infinity; }
+                else if (key === 'netMargin') { valA = a.type==='revenue'&&a.amount>0?(a.amount-a.fulfillmentExpense)/a.amount:-Infinity; valB = b.type==='revenue'&&b.amount>0?(b.amount-b.fulfillmentExpense)/b.amount:-Infinity; }
+                else { valA = a[key]; valB = b[key]; }
+                return (valA < valB ? -1 : valA > valB ? 1 : 0) * (order === 'asc' ? 1 : -1);
+            });
+            // Render Body
+            const tbody = tableContainer.querySelector('#table-body');
+            tbody.innerHTML = sorted.length ? sorted.map(renderTransactionRow).join('') : `<tr><td colspan="7" class="text-center p-8 dark:text-dark-text-secondary">No results match your search.</td></tr>`;
+            tbody.querySelectorAll('.delete-btn').forEach(b => b.addEventListener('click', handleDeleteClick));
+        };
+        const renderTransactionRow = (entry) => {
+            const statusColors = {'Recurring':'bg-green-500/10 text-green-400','New Customer':'bg-blue-500/10 text-blue-400','Warm Lead':'bg-yellow-500/10 text-yellow-400','Cold Lead':'bg-gray-500/10 text-gray-400'};
+            const avatarColor = (name='X') => ['bg-blue-500','bg-green-500','bg-purple-500','bg-red-500','bg-yellow-500'][name.charCodeAt(0)%5];
+            const netProfit = entry.type==='revenue' ? entry.amount - entry.fulfillmentExpense : null;
+            const netMargin = netProfit !== null && entry.amount > 0 ? (netProfit / entry.amount) : null;
+            return `<tr class="border-b dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                <td class="p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold ${avatarColor(entry.itemName)}">${(entry.itemName||'X').charAt(0).toUpperCase()}</div><div><div class="font-bold">${entry.itemName}</div><div class="text-sm dark:text-dark-text-secondary">${entry.business}${entry.customerSource!=='N/A' ? ` | ${entry.customerSource}`:''}</div></div></div></td>
+                <td class="p-3 font-bold ${entry.type === 'revenue' ? 'text-green-400' : 'text-red-400'}">${formatCurrency(entry.amount)}</td>
+                <td class="p-3 dark:text-dark-text-secondary">${netProfit!==null?formatCurrency(netProfit):'N/A'}</td>
+                <td class="p-3 dark:text-dark-text-secondary">${netMargin!==null?formatPercent(netMargin):'N/A'}</td>
+                <td class="p-3 dark:text-dark-text-secondary">${format(entry.dateObj, 'MMM d, yyyy')}</td>
+                <td class="p-3"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[entry.status] || 'bg-gray-500/10 text-gray-400'}">${entry.status}</span></td>
+                <td class="p-3"><button class="text-gray-400 hover:text-red-500 delete-btn" data-id="${entry.id}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td></tr>`;
+        };
+        const renderModalForm = () => {
+            const type = state.ui.activeModalForm;
+            DOMElements.tagsDataList.innerHTML = [...new Set(state.entries.map(e => e.sector).filter(Boolean))].map(t => `<option value="${t}"></option>`).join('');
+            DOMElements.addEntryModal.typeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.type === type));
+            const base = "mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 sm:text-sm";
+            const field = (n, l, o={}) => {
+                const {t='text', p='', note='', span='md:col-span-1'} = o;
+                const label = `<label for="${n}" class="block text-sm font-medium dark:text-dark-text-secondary">${l}</label>${note?`<p class="text-xs text-gray-500">${note}</p>`:''}`;
+                if (t==='select') return `<div class="${span}">${label}<select name="${n}" id="${n}" class="${base}">${o.choices.map(c=>`<option value="${c}">${c}</option>`).join('')}</select></div>`;
+                if (t==='textarea') return `<div class="${span}">${label}<textarea name="${n}" id="${n}" rows="2" class="${base}" placeholder="${p}"></textarea></div>`;
+                return `<div class="${span}">${label}<input type="${t}" name="${n}" id="${n}" class="${base}" placeholder="${p}" ${t==='date'?`value="${format(new Date(),'yyyy-MM-dd')}"`:''} ${o.list?`list="${o.list}"`:''} required></div>`;
+            };
+            const common = `${field('date','Date',{t:'date'})}${field('amount','Amount ($)',{t:'number',p:'1500.00'})}${field('projectedExpense','Projected Expense ($)',{t:'number',p:'300.00'})}`;
+            const revenue = `${field('itemName','Customer Name',{p:'John Doe'})}${field('business','Business',{p:'Web Design'})}${field('fulfillmentExpense','Fulfillment Cost ($)',{t:'number',p:'250.00'})}${field('sector','Sector/Tag',{p:'Services',list:'tags-datalist'})}${field('customerSource','Source',{p:'Referral'})}${field('status','Status',{t:'select',choices:['New Customer','Warm Lead','Recurring','N/A']})}`;
+            const expense = `${field('itemName','Item/Service',{p:'Office Supplies'})}${field('business','Category',{p:'Software, Overhead'})}${field('sector','Tag',{p:'Tools, Marketing',list:'tags-datalist'})}${field('status','Status',{t:'select',choices:['Actual','Projected','Recurring','N/A']})}`;
+            const fields = type==='revenue' ? `${common}${revenue}` : `${common}${expense}`;
+            DOMElements.addEntryModal.form.innerHTML = `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">${fields}${field('notes','Notes',{t:'textarea',p:'Optional details...',span:'md:col-span-2'})}</div><div class="flex justify-end space-x-3 pt-4"><button type="button" class="modal-cancel px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-dark-border dark:text-dark-text-primary dark:hover:bg-gray-600 font-semibold">Cancel</button><button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Save Transaction</button></div>`;
+            DOMElements.addEntryModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
+        };
+        
+        const toggleTheme = () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; render(); };
+        const handleTabClick = (e) => { if (e.target.matches('[data-tab]')) { state.ui.activeTableTab = e.target.dataset.tab; renderTransactionTable(); }};
+        const handleSortClick = (e) => {
+            const th = e.target.closest('[data-sort-key]'); if(!th) return;
+            const newKey = th.dataset.sortKey;
+            state.ui.sort.order = state.ui.sort.key === newKey && state.ui.sort.order === 'desc' ? 'asc' : 'desc';
+            state.ui.sort.key = newKey; renderTransactionTable();
+        };
+        const handleDeleteClick = (e) => { state.itemToDelete = e.target.closest('[data-id]').dataset.id; toggleModal(DOMElements.deleteModal.modal, true); };
+        const confirmDelete = () => { state.entries = state.entries.filter(e => e.id !== state.itemToDelete); state.itemToDelete = null; toggleModal(DOMElements.deleteModal.modal, false); render(); };
+        const handleFormSubmit = (e) => {
+            e.preventDefault(); const data = Object.fromEntries(new FormData(e.target).entries());
+            if (!data.amount || !data.itemName) { DOMElements.addEntryModal.error.textContent = 'Please fill out at least the item name and amount.'; DOMElements.addEntryModal.error.classList.remove('hidden'); return; }
+            const newEntry = { id: crypto.randomUUID(), type: state.ui.activeModalForm, ...data, amount: parseFloat(data.amount), fulfillmentExpense: parseFloat(data.fulfillmentExpense||0), projectedExpense: parseFloat(data.projectedExpense||0), dateObj: parseISO(data.date) };
+            if (newEntry.type === 'expense') { newEntry.customerSource = 'N/A'; newEntry.fulfillmentExpense = 0; }
+            state.entries.unshift(newEntry); toggleModal(DOMElements.addEntryModal.modal, false); render();
+        };
+        const handleSearch = (e) => { state.ui.searchQuery = e.target.value; renderTransactionTable(); };
+        const toggleModal = (modal, show) => {
+            modal.style.display = show ? 'flex' : 'none';
+            if(show && modal.id === 'add-entry-modal'){ DOMElements.addEntryModal.error.classList.add('hidden'); renderModalForm(); }
+        };
+        
+        const init = () => {
+            loadState();
+            DOMElements.themeToggle.addEventListener('click', toggleTheme);
+            DOMElements.addEntryButton.addEventListener('click', () => { state.ui.activeModalForm = 'revenue'; toggleModal(DOMElements.addEntryModal.modal, true); });
+            DOMElements.addEntryModal.closeButton.addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
+            DOMElements.addEntryModal.typeButtons.forEach(btn => btn.addEventListener('click', (e) => { if(e.target.matches('[data-type]')){ state.ui.activeModalForm = e.target.dataset.type; renderModalForm();} }));
+            DOMElements.addEntryModal.form.addEventListener('submit', handleFormSubmit);
+            DOMElements.deleteModal.confirmButton.addEventListener('click', confirmDelete);
+            DOMElements.deleteModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.deleteModal.modal, false));
+            DOMElements.revenueTimespan.addEventListener('change', (e) => { state.ui.revenueChartTimespan = e.target.value; renderMainRevenueChart(); });
+            DOMElements.dailySalesTimespan.addEventListener('change', (e) => { state.ui.dailySalesTimespan = parseInt(e.target.value); renderDailySalesChart(); });
+            DOMElements.statViewButtons.forEach(btn => btn.addEventListener('click', (e) => { if(e.target.matches('[data-view]')){ state.ui.statsView = e.target.dataset.view; renderStats(); }}));
+            
+            DOMElements.loader.style.display = 'none';
+            DOMElements.dashboardContent.classList.remove('hidden');
+            render();
+        };
+        document.addEventListener('DOMContentLoaded', init);
+    })();
+    </script>
+</body>
+</html>
