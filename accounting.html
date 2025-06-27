@@ -267,22 +267,22 @@
 
         // --- Utility Functions ---
         const formatCurrency = (v) => `$${(v || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        const formatPercent = (v) => `${(v * 100).toFixed(1)}%`; // FIX: Added this missing function
+        const formatPercent = (v) => `${(v * 100).toFixed(1)}%`;
         
         // --- State Management (LocalStorage) ---
         const saveState = () => {
             try {
                 // Remove non-serializable date objects before saving
                 const entriesToSave = state.entries.map(({dateObj, ...rest}) => rest);
-                localStorage.setItem('dashboard-entries-v8', JSON.stringify(entriesToSave));
-                localStorage.setItem('dashboard-theme-v8', state.theme);
+                localStorage.setItem('dashboard-entries-v9', JSON.stringify(entriesToSave));
+                localStorage.setItem('dashboard-theme-v9', state.theme);
             } catch (error) {
                 console.error("Failed to save state to localStorage:", error);
             }
         };
         const loadState = () => {
-            const savedEntries = localStorage.getItem('dashboard-entries-v8');
-            const savedTheme = localStorage.getItem('dashboard-theme-v8');
+            const savedEntries = localStorage.getItem('dashboard-entries-v9');
+            const savedTheme = localStorage.getItem('dashboard-theme-v9');
             
             const entries = savedEntries ? JSON.parse(savedEntries) : initialData;
             // Add date objects back for sorting and filtering
@@ -381,13 +381,17 @@
             if (revenueEntriesWithSector.length === 0) {
                 DOMElements.sectorChart.wrapper.classList.add('hidden');
                 DOMElements.sectorChart.noData.classList.remove('hidden');
+                if (state.chartInstances['revenue-by-sector-chart']) {
+                    state.chartInstances['revenue-by-sector-chart'].destroy();
+                    delete state.chartInstances['revenue-by-sector-chart'];
+                }
                 return;
             }
             
             DOMElements.sectorChart.wrapper.classList.remove('hidden');
             DOMElements.sectorChart.noData.classList.add('hidden');
 
-            const sectors = [...new Set(revenueEntriesWithSector.map(e => e.sector))];
+            const sectors = [...new Set(revenueEntriesWithSector.map(e => e.sector))].sort();
             const sectorColorMap = new Map(sectors.map((s, i) => [s, chartStyler.getColor(i)]));
 
             const last = new Date();
@@ -414,30 +418,69 @@
                 }
             }
             
-            const datasets = sectors.map(sector => ({
-                label: sector,
-                data: labels.map(label => {
+            const datasets = sectors.map(sector => {
+                const data = [];
+                const customData = [];
+                labels.forEach(label => {
                     const dataPoint = groupedData.get(label)?.get(sector);
-                    return { y: dataPoint?.revenue || 0, profit: dataPoint?.profit || 0 };
-                }),
-                backgroundColor: sectorColorMap.get(sector),
-                borderRadius: 2,
-            }));
+                    const revenue = dataPoint?.revenue || 0;
+                    const profit = dataPoint?.profit || 0;
+                    const margin = revenue > 0 ? profit / revenue : 0;
+                    data.push(revenue);
+                    customData.push({ profit, margin });
+                });
+
+                return {
+                    label: sector,
+                    data: data,
+                    customData: customData,
+                    backgroundColor: sectorColorMap.get(sector),
+                    borderRadius: 2,
+                }
+            });
 
             renderChart('revenue-by-sector-chart', {
                 type: 'bar',
                 data: { labels, datasets },
                 options: {
                     responsive: true, maintainAspectRatio: false,
-                    // FIX: Added parsing configuration to correctly read object data
-                    parsing: { yAxisKey: 'y' },
                     scales: {
                         x: { stacked: true, ticks: { color: chartStyler.labels(), maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } },
                         y: { stacked: true, ticks: { color: chartStyler.labels(), callback: v => `$${v/1000}k` }, grid: { color: chartStyler.grid() } }
                     },
                     plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: c => `${c.dataset.label}: ${formatCurrency(c.raw.y)} (Profit: ${formatCurrency(c.raw.profit)})` } }
+                        legend: { 
+                            position: 'top',
+                            align: 'start',
+                            labels: {
+                                color: chartStyler.legend(),
+                                boxWidth: 12,
+                                padding: 20,
+                                usePointStyle: true,
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const revenue = context.parsed.y || 0;
+                                    const customInfo = context.dataset.customData[context.dataIndex];
+                                    
+                                    if (!customInfo) {
+                                        return `${label}: ${formatCurrency(revenue)}`;
+                                    }
+
+                                    const { profit, margin } = customInfo;
+                                    
+                                    // Using an array of strings creates a multi-line tooltip
+                                    return [
+                                        `${label}: ${formatCurrency(revenue)}`,
+                                        `Profit: ${formatCurrency(profit)}`,
+                                        `Margin: ${formatPercent(margin)}`
+                                    ];
+                                }
+                            }
+                        }
                     }
                 }
             });
