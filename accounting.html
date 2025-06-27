@@ -10,9 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
-    <!-- PDF Generation Libraries -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script>
         // Custom Tailwind theme configuration
@@ -40,8 +37,6 @@
         body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         .modal { display: none; animation: fadeIn 0.3s ease-out; }
         .modal-content { animation: slideInUp 0.4s ease-out; }
-        .page-view { display: none; animation: fadeIn 0.5s ease-out; }
-        .page-view.active { display: block; }
         .loader { border-top-color: #3b82f6; animation: spin 1s linear infinite; }
         th.sortable:hover { cursor: pointer; background-color: #f9fafb; }
         .dark th.sortable:hover { background-color: #334155; }
@@ -71,23 +66,7 @@
             color: #f9fafb;
         }
         
-        /* Invoice specific styles */
-        #invoice-preview-wrapper { font-family: 'Inter', sans-serif; }
-        .invoice-box { border: 1px solid #eee; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); font-size: 16px; line-height: 24px; color: #555; }
-        .dark .invoice-box { border-color: #334155; box-shadow: 0 0 10px rgba(0,0,0, .5); color: #ccc; }
-        .invoice-box table { width: 100%; line-height: inherit; text-align: left; border-collapse: collapse; }
-        .invoice-box table td { padding: 8px 12px; vertical-align: top; }
-        .invoice-box table tr.top table td { padding-bottom: 20px; }
-        .invoice-box table tr.information table td { padding-bottom: 40px; }
-        .invoice-box table tr.heading td { background: #eee; border-bottom: 1px solid #ddd; font-weight: bold; }
-        .dark .invoice-box table tr.heading td { background: #1E293B; border-bottom-color: #334155; }
-        .invoice-box table tr.details td { padding-bottom: 20px; }
-        .invoice-box table tr.item td { border-bottom: 1px solid #eee; }
-        .dark .invoice-box table tr.item td { border-bottom-color: #334155; }
-        .invoice-box table tr.item.last td { border-bottom: none; }
-        .invoice-box table tr.total td:not(:first-child) { border-top: 2px solid #eee; font-weight: bold; }
-        .dark .invoice-box table tr.total td:not(:first-child) { border-top-color: #334155; }
-        .dark .invoice-box .invoice-title { color: #f1f5f9 !important; }
+        #dashboard-content.shown { animation: fadeIn 0.5s ease-out; }
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideInUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
@@ -102,189 +81,88 @@
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-dark-bg font-sans text-gray-800 dark:text-dark-text-primary">
-    
-    <div id="mobile-menu-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
 
     <div class="flex min-h-screen">
-        <aside class="bg-white dark:bg-dark-surface p-4 flex flex-col items-center shadow-xl fixed h-full z-40 transform -translate-x-full md:translate-x-0 transition-transform duration-300 ease-in-out w-64 md:w-20">
+        <aside class="w-20 bg-white dark:bg-dark-surface p-4 flex flex-col items-center space-y-8 shadow-xl fixed h-full z-20">
             <div class="text-blue-600 dark:text-blue-400 font-extrabold text-3xl">W</div>
-            <!-- Sidebar Navigation -->
-            <nav class="flex flex-col items-center space-y-6 flex-grow mt-8">
-                <a href="#" data-page="dashboard" class="sidebar-link p-3 rounded-lg" title="Analytics"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 13h18"/><path d="M16 3v18"/></svg></a>
-                <!-- Invoice Icon -->
-                <a href="#" data-page="invoicing" class="sidebar-link p-3 rounded-lg" title="Invoicing"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5.586a1 1 0 0 1 .707.293l5.414 5.414a1 1 0 0 1 .293.707V19a2 2 0 0 1-2 2Z"/></svg></a>
+            <nav class="flex flex-col items-center space-y-6 flex-grow">
+                <a href="#" class="p-3 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg" title="Analytics"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 13h18"/><path d="M16 3v18"/></svg></a>
+                <a href="#" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg" title="Dashboard"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></a>
             </nav>
             <div id="theme-toggle" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg cursor-pointer" title="Toggle Theme"></div>
         </aside>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 md:ml-20 w-full">
-             <!-- Mobile Header -->
-            <header class="md:hidden flex justify-between items-center mb-4">
-                 <button id="hamburger-menu-button" class="p-2 text-gray-500">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
-                </button>
-                <div class="text-blue-600 dark:text-blue-400 font-extrabold text-2xl">W</div>
-                <div><!-- Spacer --></div>
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20">
+            <header class="flex flex-wrap justify-between items-center gap-4 mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text-primary">Analytics</h1>
+                    <p class="text-gray-500 dark:text-dark-text-secondary">Dashboard / Analytics</p>
+                </div>
+                <div class="flex items-center space-x-2 sm:space-x-4">
+                    <button id="add-entry-button" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-semibold flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Transaction</button>
+                </div>
             </header>
-
-            <!-- Dashboard Page -->
-            <div id="dashboard-page" class="page-view">
-                <header class="hidden md:flex flex-wrap justify-between items-center gap-4 mb-8">
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-dark-text-primary">Analytics</h1>
-                        <p class="text-gray-500 dark:text-dark-text-secondary">Dashboard / Analytics</p>
-                    </div>
-                    <div class="flex items-center space-x-2 sm:space-x-4">
-                        <input type="file" id="import-file-input" class="hidden" accept=".json">
-                        <button id="import-data-button" class="bg-gray-200 text-gray-800 dark:bg-slate-700 dark:text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-slate-600 font-semibold flex items-center gap-2 text-sm">Import</button>
-                        <button id="export-data-button" class="bg-gray-200 text-gray-800 dark:bg-slate-700 dark:text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-300 dark:hover:bg-slate-600 font-semibold flex items-center gap-2 text-sm">Export</button>
-                        <button id="add-entry-button" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-semibold flex items-center gap-2 text-sm"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>Add Transaction</button>
-                    </div>
-                </header>
-                
-                <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
-                
-                <div id="dashboard-content" class="space-y-8 hidden">
-                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                        <div id="revenue-by-sector-container" class="xl:col-span-1 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border flex flex-col">
-                            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                                 <h2 class="text-xl font-bold">Revenue by Sector</h2>
-                                  <select id="sector-revenue-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-                                    <option value="Daily">Daily</option>
-                                    <option value="Weekly" selected>Weekly</option>
-                                    <option value="Monthly">Monthly</option>
-                                </select>
-                            </div>
-                            <div id="sector-chart-wrapper" class="flex-grow relative min-h-[300px]">
-                                <canvas id="revenue-by-sector-chart"></canvas>
-                            </div>
-                            <div id="sector-chart-no-data" class="flex-grow flex flex-col justify-center items-center text-center min-h-[300px] hidden">
-                                <p class="text-gray-500 dark:text-dark-text-secondary px-4">Add a 'sector' to a revenue transaction to see data here.</p>
-                            </div>
+            
+            <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
+            
+            <div id="dashboard-content" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div id="revenue-by-sector-container" class="xl:col-span-1 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border flex flex-col">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                             <h2 class="text-xl font-bold">Revenue by Sector</h2>
+                              <select id="sector-revenue-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                                <option value="Daily">Daily</option>
+                                <option value="Weekly" selected>Weekly</option>
+                                <option value="Monthly">Monthly</option>
+                            </select>
                         </div>
-
-                        <div class="xl:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
-                            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                                <h2 class="text-xl font-bold">Revenue Statistics</h2>
-                                <select id="revenue-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-                                    <option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="Monthly" selected>Monthly</option>
-                                </select>
-                            </div>
-                            <div class="h-80 relative"><canvas id="revenue-line-chart"></canvas></div>
+                        <div id="sector-chart-wrapper" class="flex-grow relative min-h-[300px]">
+                            <canvas id="revenue-by-sector-chart"></canvas>
+                        </div>
+                        <div id="sector-chart-no-data" class="flex-grow flex flex-col justify-center items-center text-center min-h-[300px] hidden">
+                            <p class="text-gray-500 dark:text-dark-text-secondary px-4">Add a 'sector' to a revenue transaction to see data here.</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                         <div class="lg:col-span-1 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
-                             <h2 class="text-xl font-bold mb-4">Revenue Breakdown</h2>
-                             <div class="grid grid-cols-2 gap-x-4">
-                                <div class="col-span-1 text-center">
-                                    <h3 class="text-md font-bold mb-2">By Source</h3>
-                                    <div class="h-40 w-full relative"><canvas id="source-pie-chart"></canvas></div>
-                                </div>
-                                <div class="col-span-1 text-center">
-                                     <h3 class="text-md font-bold mb-2">By Business</h3>
-                                    <div class="h-40 w-full relative"><canvas id="business-pie-chart"></canvas></div>
-                                </div>
-                             </div>
-                             <div id="business-breakdown-container" class="col-span-2 mt-4 pt-4 border-t border-gray-200 dark:border-dark-border"></div>
+                    <div class="xl:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                            <h2 class="text-xl font-bold">Revenue Statistics</h2>
+                            <select id="revenue-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                                <option value="Daily">Daily</option><option value="Weekly">Weekly</option><option value="Monthly" selected>Monthly</option>
+                            </select>
                         </div>
-                        <div class="lg:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
-                            <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                                 <h2 class="text-xl font-bold">Daily Sales Activity</h2>
-                                  <select id="daily-sales-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
-                                    <option value="7">Last 7 Days</option><option value="30" selected>Last 30 Days</option><option value="90">Last 90 Days</option>
-                                </select>
-                            </div>
-                            <div class="h-[280px] relative"><canvas id="daily-sales-bar-chart"></canvas></div>
-                        </div>
-                    </div>
-
-                    <div id="transaction-table-container" class="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border"></div>
-                </div>
-            </div>
-
-            <!-- Invoice Creator Page -->
-            <div id="invoice-creator-page" class="page-view">
-                <header class="flex flex-wrap justify-between items-center gap-4 mb-8">
-                    <div>
-                        <h1 class="text-xl md:text-3xl font-bold text-gray-900 dark:text-dark-text-primary">Invoice Creator</h1>
-                        <p class="text-sm md:text-base text-gray-500 dark:text-dark-text-secondary">Create and download a new invoice.</p>
-                    </div>
-                    <div class="flex items-center space-x-2 sm:space-x-4">
-                         <button id="download-invoice-pdf" class="bg-green-600 text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-green-700 font-semibold flex items-center gap-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
-                            Download PDF
-                        </button>
-                    </div>
-                </header>
-                 <div class="p-1 grid grid-cols-1 lg:grid-cols-5 gap-8">
-                    <!-- Invoice Form -->
-                    <form id="invoice-form" class="lg:col-span-2 space-y-6 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border self-start">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div>
-                                <label for="invoice-from-name" class="block text-sm font-medium dark:text-dark-text-secondary">From</label>
-                                <textarea id="invoice-from-name" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg" placeholder="Your Company, Inc.&#10;123 Main Street&#10;Anytown, USA 12345"></textarea>
-                            </div>
-                            <div>
-                                <label for="invoice-to-name" class="block text-sm font-medium dark:text-dark-text-secondary">Bill To</label>
-                                <textarea id="invoice-to-name" rows="3" list="client-datalist" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg" placeholder="Client Name&#10;Client Address"></textarea>
-                                <datalist id="client-datalist"></datalist>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label for="invoice-number" class="block text-sm font-medium dark:text-dark-text-secondary">Invoice #</label>
-                                <input type="text" id="invoice-number" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg">
-                            </div>
-                            <div>
-                                <label for="invoice-date-issued" class="block text-sm font-medium dark:text-dark-text-secondary">Date Issued</label>
-                                <input type="date" id="invoice-date-issued" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg">
-                            </div>
-                            <div>
-                                <label for="invoice-date-due" class="block text-sm font-medium dark:text-dark-text-secondary">Date Due</label>
-                                <input type="date" id="invoice-date-due" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg">
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-semibold mb-2">Items</h3>
-                            <div id="invoice-items-container" class="space-y-2"></div>
-                            <button type="button" id="add-invoice-item-btn" class="mt-2 text-sm text-blue-600 hover:text-blue-800 font-semibold">+ Add Line Item</button>
-                        </div>
-                        <div class="space-y-4 pt-4 border-t dark:border-dark-border">
-                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <label for="invoice-discount" class="block text-sm font-medium dark:text-dark-text-secondary">Discount (Optional)</label>
-                                    <input type="number" step="0.01" id="invoice-discount" placeholder="$0.00" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border-gray-300 dark:border-dark-border rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="invoice-tax-rate" class="block text-sm font-medium dark:text-dark-text-secondary">Tax (Optional, %)</label>
-                                    <input type="number" step="0.01" id="invoice-tax-rate" placeholder="0" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border-gray-300 dark:border-dark-border rounded-lg">
-                                </div>
-                                <div>
-                                    <label for="invoice-shipping" class="block text-sm font-medium dark:text-dark-text-secondary">Shipping (Optional)</label>
-                                    <input type="number" step="0.01" id="invoice-shipping" placeholder="$0.00" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border-gray-300 dark:border-dark-border rounded-lg">
-                                </div>
-                            </div>
-                        </div>
-                         <div>
-                            <label for="invoice-notes" class="block text-sm font-medium dark:text-dark-text-secondary">Notes</label>
-                            <textarea id="invoice-notes" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg" placeholder="e.g. Thank you for your business!"></textarea>
-                        </div>
-                        <div>
-                            <label for="invoice-terms" class="block text-sm font-medium dark:text-dark-text-secondary">Terms</label>
-                            <textarea id="invoice-terms" rows="3" class="mt-1 block w-full px-3 py-2 bg-gray-100 dark:bg-slate-800 border border-gray-300 dark:border-dark-border rounded-lg" placeholder="e.g. Payment due within 30 days."></textarea>
-                        </div>
-                    </form>
-                    <!-- Invoice Preview -->
-                    <div id="invoice-preview-wrapper" class="lg:col-span-3">
-                        <div id="invoice-preview-template" class="invoice-box bg-white dark:bg-dark-surface p-8 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
-                            <!-- Invoice content will be generated here by JS -->
-                        </div>
+                        <div class="h-80 relative"><canvas id="revenue-line-chart"></canvas></div>
                     </div>
                 </div>
-            </div>
 
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                     <div class="lg:col-span-1 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
+                         <h2 class="text-xl font-bold mb-4">Revenue Breakdown</h2>
+                         <div class="grid grid-cols-2 gap-x-4">
+                            <div class="col-span-1 text-center">
+                                <h3 class="text-md font-bold mb-2">By Source</h3>
+                                <div class="h-40 w-full relative"><canvas id="source-pie-chart"></canvas></div>
+                            </div>
+                            <div class="col-span-1 text-center">
+                                 <h3 class="text-md font-bold mb-2">By Business</h3>
+                                <div class="h-40 w-full relative"><canvas id="business-pie-chart"></canvas></div>
+                            </div>
+                         </div>
+                         <div id="business-breakdown-container" class="col-span-2 mt-4 pt-4 border-t border-gray-200 dark:border-dark-border"></div>
+                    </div>
+                    <div class="lg:col-span-2 bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+                             <h2 class="text-xl font-bold">Daily Sales Activity</h2>
+                              <select id="daily-sales-timespan" class="bg-gray-100 dark:bg-slate-800 border-none dark:border-dark-border rounded-md px-3 py-1.5 text-sm font-medium focus:ring-2 focus:ring-blue-500">
+                                <option value="7">Last 7 Days</option><option value="30" selected>Last 30 Days</option><option value="90">Last 90 Days</option>
+                            </select>
+                        </div>
+                        <div class="h-[280px] relative"><canvas id="daily-sales-bar-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <div id="transaction-table-container" class="bg-white dark:bg-dark-surface p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-dark-border"></div>
+            </div>
         </main>
     </div>
 
@@ -317,16 +195,13 @@
             </div>
         </div>
     </div>
-        
+    
     <datalist id="tags-datalist"></datalist>
 
     <script>
     (() => {
         // Destructure date-fns functions for easy access
-        const { parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subDays, isAfter, addDays } = dateFns;
-
-        // PDF generation library
-        const { jsPDF } = window.jspdf;
+        const { parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval, subDays, isAfter } = dateFns;
 
         // Initial sample data
         const initialData = [
@@ -345,7 +220,6 @@
             theme: 'light',
             itemToDelete: null,
             ui: {
-                activePage: 'dashboard',
                 activeTableTab: 'all',
                 revenueChartTimespan: 'Monthly',
                 sort: { key: 'date', order: 'desc' },
@@ -367,17 +241,6 @@
             businessBreakdownContainer: document.getElementById('business-breakdown-container'), 
             addEntryButton: document.getElementById('add-entry-button'),
             tagsDataList: document.getElementById('tags-datalist'),
-            // Page containers
-            pages: {
-                dashboard: document.getElementById('dashboard-page'),
-                invoicing: document.getElementById('invoice-creator-page'),
-            },
-            sidebar: document.querySelector('aside'),
-            sidebarLinks: document.querySelectorAll('.sidebar-link'),
-            mobileMenu: {
-                button: document.getElementById('hamburger-menu-button'),
-                overlay: document.getElementById('mobile-menu-overlay'),
-            },
             // Selectors for dropdowns
             revenueTimespanSelect: document.getElementById('revenue-timespan'), 
             dailySalesTimespanSelect: document.getElementById('daily-sales-timespan'),
@@ -400,19 +263,6 @@
                 confirmButton: document.getElementById('delete-confirm-button'),
                 cancelButton: document.getElementById('delete-cancel-button'),
             },
-            invoice: {
-                form: document.getElementById('invoice-form'),
-                itemsContainer: document.getElementById('invoice-items-container'),
-                addItemButton: document.getElementById('add-invoice-item-btn'),
-                preview: document.getElementById('invoice-preview-template'),
-                downloadPdfButton: document.getElementById('download-invoice-pdf'),
-                clientDatalist: document.getElementById('client-datalist'),
-            },
-            importData: {
-                button: document.getElementById('import-data-button'),
-                input: document.getElementById('import-file-input'),
-            },
-            exportDataButton: document.getElementById('export-data-button'),
         };
 
         // --- Utility Functions ---
@@ -424,24 +274,20 @@
             try {
                 // Remove non-serializable date objects before saving
                 const entriesToSave = state.entries.map(({dateObj, ...rest}) => rest);
-                localStorage.setItem('dashboard-entries-v13', JSON.stringify(entriesToSave));
-                localStorage.setItem('dashboard-theme-v13', state.theme);
+                localStorage.setItem('dashboard-entries-v9', JSON.stringify(entriesToSave));
+                localStorage.setItem('dashboard-theme-v9', state.theme);
             } catch (error) {
                 console.error("Failed to save state to localStorage:", error);
             }
         };
         const loadState = () => {
-            const savedEntries = localStorage.getItem('dashboard-entries-v13');
-            let savedTheme = localStorage.getItem('dashboard-theme-v13');
+            const savedEntries = localStorage.getItem('dashboard-entries-v9');
+            const savedTheme = localStorage.getItem('dashboard-theme-v9');
             
-            if (!savedTheme) { // Check for system preference
-                savedTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-            }
-
             const entries = savedEntries ? JSON.parse(savedEntries) : initialData;
             // Add date objects back for sorting and filtering
             state.entries = entries.map(e => ({...e, dateObj: parseISO(e.date)}));
-            state.theme = savedTheme;
+            state.theme = savedTheme || 'light';
         };
         
         // --- Charting ---
@@ -590,8 +436,6 @@
                     customData: customData,
                     backgroundColor: sectorColorMap.get(sector),
                     borderRadius: 2,
-                    barPercentage: 0.7,
-                    categoryPercentage: 0.8
                 }
             });
 
@@ -603,12 +447,6 @@
                     scales: {
                         x: { stacked: true, ticks: { color: chartStyler.labels(), maxRotation: 0, autoSkip: true, maxTicksLimit: 7 }, grid: { display: false } },
                         y: { stacked: true, ticks: { color: chartStyler.labels(), callback: v => `$${v/1000}k` }, grid: { color: chartStyler.grid() } }
-                    },
-                    layout: {
-                        padding: {
-                            top: 25,
-                            bottom: 10
-                        }
                     },
                     plugins: {
                         legend: { 
@@ -667,21 +505,15 @@
         // --- Main Render & UI Update Functions ---
         const render = () => {
             renderTheme();
-            updateActivePage();
-            if(state.ui.activePage === 'dashboard') {
-                renderAllCharts();
-                renderBusinessBreakdown();
-                renderTransactionTable();
-            }
+            renderAllCharts();
+            renderBusinessBreakdown();
+            renderTransactionTable();
             saveState();
         };
 
         const renderTheme = () => {
             DOMElements.html.classList.toggle('dark', state.theme === 'dark');
             DOMElements.themeToggle.innerHTML = state.theme === 'dark' ? `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
-            if (state.ui.activePage === 'invoicing') {
-                updateInvoicePreview();
-            }
         };
 
         const renderBusinessBreakdown = () => {
@@ -760,7 +592,7 @@
                 <td class="p-3 font-bold ${entry.type === 'revenue' ? 'text-green-400' : 'text-red-400'}">${formatCurrency(entry.amount)}</td>
                 <td class="p-3 dark:text-dark-text-secondary">${netProfit!==null?formatCurrency(netProfit):'N/A'}</td>
                 <td class="p-3 dark:text-dark-text-secondary">${netMargin!==null?formatPercent(netMargin):'N/A'}</td>
-                <td class="p-3 dark:text-dark-text-secondary">${format(entry.dateObj, 'MMM d, píyy')}</td>
+                <td class="p-3 dark:text-dark-text-secondary">${format(entry.dateObj, 'MMM d, yyyy')}</td>
                 <td class="p-3"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[entry.status] || 'bg-gray-500/10 text-gray-400'}">${entry.status}</span></td>
                 <td class="p-3"><button class="text-gray-400 hover:text-red-500 delete-btn" data-id="${entry.id}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button></td></tr>`;
         };
@@ -785,175 +617,6 @@
             DOMElements.addEntryModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
         };
         
-        // --- Page Switching ---
-        const switchPage = (pageId) => {
-            state.ui.activePage = pageId;
-            updateActivePage();
-        };
-
-        const updateActivePage = () => {
-             // Hide all pages
-            Object.values(DOMElements.pages).forEach(page => page.classList.remove('active'));
-            // Show active page
-            if (DOMElements.pages[state.ui.activePage]) {
-                DOMElements.pages[state.ui.activePage].classList.add('active');
-            }
-
-            // Update sidebar link styles
-            DOMElements.sidebarLinks.forEach(link => {
-                if (link.dataset.page === state.ui.activePage) {
-                    link.classList.add('bg-blue-100', 'dark:bg-blue-500/20', 'text-blue-600', 'dark:text-blue-400');
-                    link.classList.remove('text-gray-500', 'hover:bg-gray-100', 'dark:hover:bg-gray-700/50');
-                } else {
-                    link.classList.remove('bg-blue-100', 'dark:bg-blue-500/20', 'text-blue-600', 'dark:text-blue-400');
-                    link.classList.add('text-gray-500', 'hover:bg-gray-100', 'dark:hover:bg-gray-700/50');
-                }
-            });
-
-            if (state.ui.activePage === 'invoicing') {
-                initInvoice();
-            }
-        };
-
-
-        // --- Invoice Functions ---
-        const initInvoice = () => {
-            DOMElements.invoice.form.reset();
-            document.getElementById('invoice-date-issued').value = format(new Date(), 'yyyy-MM-dd');
-            document.getElementById('invoice-date-due').value = format(addDays(new Date(), 30), 'yyyy-MM-dd');
-            DOMElements.invoice.itemsContainer.innerHTML = '';
-            addInvoiceItem();
-            updateInvoicePreview();
-
-             // Populate client datalist
-            const clientNames = [...new Set(state.entries.filter(e => e.type === 'revenue').map(e => e.itemName))];
-            DOMElements.invoice.clientDatalist.innerHTML = clientNames.map(name => `<option value="${name}"></option>`).join('');
-        };
-
-        const addInvoiceItem = () => {
-            const itemHtml = `
-                <div class="grid grid-cols-12 gap-2 items-center invoice-item-row">
-                    <div class="col-span-5"><input type="text" placeholder="Item Description" class="invoice-item-desc w-full px-2 py-1 bg-gray-50 dark:bg-slate-900/50 border-gray-300 dark:border-dark-border rounded"></div>
-                    <div class="col-span-2"><input type="number" value="1" min="0" placeholder="Qty" class="invoice-item-qty w-full px-2 py-1 bg-gray-50 dark:bg-slate-900/50 border-gray-300 dark:border-dark-border rounded"></div>
-                    <div class="col-span-2"><input type="number" value="0" min="0" step="0.01" placeholder="Rate" class="invoice-item-rate w-full px-2 py-1 bg-gray-50 dark:bg-slate-900/50 border-gray-300 dark:border-dark-border rounded"></div>
-                    <div class="col-span-2 text-right dark:text-dark-text-secondary"><span class="invoice-item-total">$0.00</span></div>
-                    <div class="col-span-1 text-right"><button type="button" class="text-red-500 hover:text-red-700 remove-invoice-item-btn font-bold text-lg">&times;</button></div>
-                </div>
-            `;
-            DOMElements.invoice.itemsContainer.insertAdjacentHTML('beforeend', itemHtml);
-        };
-        
-        const updateInvoicePreview = () => {
-            const form = DOMElements.invoice.form;
-            const fromText = form.querySelector('#invoice-from-name').value.replace(/\n/g, '<br>') || 'Your Company, Inc.<br>123 Main Street<br>Anytown, USA 12345';
-            const toText = form.querySelector('#invoice-to-name').value.replace(/\n/g, '<br>') || 'Client Name<br>Client Address';
-            const invoiceNum = form.querySelector('#invoice-number').value || 'INV-001';
-            const dateIssued = form.querySelector('#invoice-date-issued').value;
-            const dateDue = form.querySelector('#invoice-date-due').value;
-            const notes = form.querySelector('#invoice-notes').value.replace(/\n/g, '<br>');
-            const terms = form.querySelector('#invoice-terms').value.replace(/\n/g, '<br>');
-            
-            const discount = parseFloat(form.querySelector('#invoice-discount').value) || 0;
-            const taxRate = parseFloat(form.querySelector('#invoice-tax-rate').value) || 0;
-            const shipping = parseFloat(form.querySelector('#invoice-shipping').value) || 0;
-
-
-            let subtotal = 0;
-            const itemRows = Array.from(DOMElements.invoice.itemsContainer.children).map(itemEl => {
-                const desc = itemEl.querySelector('.invoice-item-desc').value || 'Service/Product';
-                const qty = parseFloat(itemEl.querySelector('.invoice-item-qty').value) || 0;
-                const rate = parseFloat(itemEl.querySelector('.invoice-item-rate').value) || 0;
-                const total = qty * rate;
-                subtotal += total;
-                itemEl.querySelector('.invoice-item-total').textContent = formatCurrency(total);
-                return `<tr class="item"><td>${desc}</td><td style="text-align: center;">${qty}</td><td style="text-align: right;">${formatCurrency(rate)}</td><td style="text-align: right;">${formatCurrency(total)}</td></tr>`;
-            }).join('');
-
-            const subtotalAfterDiscount = subtotal - discount;
-            const tax = subtotalAfterDiscount * (taxRate / 100);
-            const total = subtotalAfterDiscount + tax + shipping;
-
-            const previewHTML = `
-                <table cellpadding="0" cellspacing="0">
-                    <tr class="top">
-                        <td colspan="4">
-                            <table>
-                                <tr>
-                                    <td class="invoice-title" style="font-size: 45px; line-height: 45px; color: #333; font-weight: bold;">
-                                        INVOICE
-                                    </td>
-                                    <td style="text-align: right;">
-                                        Invoice #: ${invoiceNum}<br />
-                                        Created: ${dateIssued ? format(parseISO(dateIssued), 'MMM d, píyy') : ''}<br />
-                                        Due: ${dateDue ? format(parseISO(dateDue), 'MMM d, píyy') : ''}
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr class="information">
-                        <td colspan="4">
-                            <table>
-                                <tr>
-                                    <td>
-                                       ${fromText}
-                                    </td>
-                                    <td style="text-align: right;">
-                                        ${toText}
-                                    </td>
-                                </tr>
-                            </table>
-                        </td>
-                    </tr>
-                    <tr class="heading">
-                        <td>Item</td><td style="text-align: center;">Quantity</td><td style="text-align: right;">Rate</td><td style="text-align: right;">Price</td>
-                    </tr>
-                    ${itemRows}
-                </table>
-                <table cellpadding="0" cellspacing="0" style="width: 40%; margin-left: auto; margin-top: 20px;">
-                     <tr class="total">
-                        <td style="text-align: right;">Subtotal:</td>
-                        <td style="text-align: right;">${formatCurrency(subtotal)}</td>
-                    </tr>
-                     ${discount > 0 ? `<tr class="total">
-                        <td style="text-align: right;">Discount:</td>
-                        <td style="text-align: right;">${formatCurrency(discount)}</td>
-                    </tr>` : ''}
-                     ${tax > 0 ? `<tr class="total">
-                        <td style="text-align: right;">Tax (${taxRate}%):</td>
-                        <td style="text-align: right;">${formatCurrency(tax)}</td>
-                    </tr>` : ''}
-                    ${shipping > 0 ? `<tr class="total">
-                        <td style="text-align: right;">Shipping:</td>
-                        <td style="text-align: right;">${formatCurrency(shipping)}</td>
-                    </tr>` : ''}
-                     <tr class="total" style="font-size: 20px; font-weight: bold;">
-                        <td style="text-align: right;">Total:</td>
-                        <td style="text-align: right;">${formatCurrency(total)}</td>
-                    </tr>
-                </table>
-                 ${notes ? `<div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;"><strong>Notes:</strong><br>${notes}</div>` : ''}
-                 ${terms ? `<div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #eee;"><strong>Terms:</strong><br>${terms}</div>` : ''}
-            `;
-            DOMElements.invoice.preview.innerHTML = previewHTML;
-        };
-
-        const handleDownloadPDF = async () => {
-            const invoiceTemplate = DOMElements.invoice.preview;
-            const canvas = await html2canvas(invoiceTemplate, { scale: 3, useCORS: true, backgroundColor: state.theme === 'dark' ? '#1E293B' : '#FFFFFF' });
-            const imgData = canvas.toDataURL('image/png');
-            
-            const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            
-            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-            
-            const invoiceNum = document.getElementById('invoice-number').value || 'invoice';
-            pdf.save(`invoice-${invoiceNum}.pdf`);
-        };
-
-
         // --- Event Handlers ---
         const toggleTheme = () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; render(); };
         const handleTabClick = (e) => { if (e.target.matches('[data-tab]')) { state.ui.activeTableTab = e.target.dataset.tab; renderTransactionTable(); }};
@@ -963,10 +626,7 @@
             state.ui.sort.order = state.ui.sort.key === newKey && state.ui.sort.order === 'desc' ? 'asc' : 'desc';
             state.ui.sort.key = newKey; renderTransactionTable();
         };
-        const handleDeleteClick = (e) => {
-            state.itemToDelete = e.target.closest('[data-id]').dataset.id;
-            toggleModal(DOMElements.deleteModal.modal, true);
-        };
+        const handleDeleteClick = (e) => { state.itemToDelete = e.target.closest('[data-id]').dataset.id; toggleModal(DOMElements.deleteModal.modal, true); };
         const confirmDelete = () => {
             state.entries = state.entries.filter(e => e.id !== state.itemToDelete);
             state.itemToDelete = null;
@@ -1007,53 +667,6 @@
                 renderModalForm();
             }
         };
-
-        const handleExportData = () => {
-            const dataToExport = JSON.stringify(state.entries.map(({dateObj, ...rest}) => rest), null, 2);
-            const blob = new Blob([dataToExport], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `transactions-export-${format(new Date(), 'yyyy-MM-dd')}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        };
-
-        const handleImportData = (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (!Array.isArray(importedData)) {
-                        throw new Error('Invalid data format. Expected an array.');
-                    }
-                    // Basic validation of an entry
-                    if (importedData.length > 0 && (!importedData[0].id || !importedData[0].date)) {
-                         throw new Error('Invalid data structure in imported file.');
-                    }
-                    state.entries = importedData.map(entry => ({...entry, dateObj: parseISO(entry.date)}));
-                    render();
-                } catch (error) {
-                    console.error('Failed to import data:', error);
-                    alert(`Import failed: ${error.message}`);
-                }
-            };
-            reader.onerror = () => {
-                alert('Failed to read the file.');
-            };
-            reader.readAsText(file);
-            event.target.value = ''; // Reset file input
-        };
-
-        const toggleMobileMenu = () => {
-            DOMElements.sidebar.classList.toggle('-translate-x-full');
-            DOMElements.mobileMenu.overlay.classList.toggle('hidden');
-        };
         
         // --- Initialization ---
         const init = () => {
@@ -1062,6 +675,7 @@
             // Attach event listeners
             DOMElements.themeToggle.addEventListener('click', toggleTheme);
             DOMElements.addEntryButton.addEventListener('click', () => {
+                state.ui.activeModalForm = 'revenue';
                 toggleModal(DOMElements.addEntryModal.modal, true);
             });
             DOMElements.addEntryModal.closeButton.addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
@@ -1075,38 +689,6 @@
             DOMElements.deleteModal.confirmButton.addEventListener('click', confirmDelete);
             DOMElements.deleteModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.deleteModal.modal, false));
             
-            // Page switching listeners
-            DOMElements.sidebarLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    switchPage(link.dataset.page);
-                    if (window.innerWidth < 768) { // md breakpoint
-                        toggleMobileMenu();
-                    }
-                });
-            });
-
-            // Mobile Menu Listeners
-            DOMElements.mobileMenu.button.addEventListener('click', toggleMobileMenu);
-            DOMElements.mobileMenu.overlay.addEventListener('click', toggleMobileMenu);
-
-            // Invoice listeners
-            DOMElements.invoice.addItemButton.addEventListener('click', addInvoiceItem);
-            DOMElements.invoice.form.addEventListener('input', updateInvoicePreview);
-            DOMElements.invoice.itemsContainer.addEventListener('click', (e) => {
-                if (e.target.classList.contains('remove-invoice-item-btn')) {
-                    e.target.closest('.invoice-item-row').remove();
-                    updateInvoicePreview();
-                }
-            });
-            DOMElements.invoice.downloadPdfButton.addEventListener('click', handleDownloadPDF);
-            
-            // Data Import / Export Listeners
-            DOMElements.exportDataButton.addEventListener('click', handleExportData);
-            DOMElements.importData.button.addEventListener('click', () => DOMElements.importData.input.click());
-            DOMElements.importData.input.addEventListener('change', handleImportData);
-
-
             DOMElements.revenueTimespanSelect.addEventListener('change', (e) => { state.ui.revenueChartTimespan = e.target.value; renderMainRevenueChart(); });
             DOMElements.dailySalesTimespanSelect.addEventListener('change', (e) => { state.ui.dailySalesTimespan = parseInt(e.target.value); renderDailySalesBarChart(); });
             DOMElements.sectorRevenueTimespanSelect.addEventListener('change', (e) => { state.ui.revenueBySectorTimespan = e.target.value; renderRevenueBySectorChart(); });
@@ -1114,7 +696,7 @@
             // Initial render
             DOMElements.loader.style.display = 'none';
             DOMElements.dashboardContent.classList.remove('hidden');
-            
+            DOMElements.dashboardContent.classList.add('shown');
             render();
         };
         document.addEventListener('DOMContentLoaded', init);
