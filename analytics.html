@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Analytics Dashboard</title>
-    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts for a nicer look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
+
     <script>
         // Custom Tailwind theme configuration
         tailwind.config = {
@@ -20,16 +20,27 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
+                    colors: {
+                        'custom-purple': '#6A5ACD',
+                        'custom-green': '#32CD32',
+                        'custom-blue': '#4169E1',
+                        'custom-pink': '#FF69B4',
+                        'custom-red': '#DC143C',
+                    }
                 }
             }
         }
     </script>
-    
+
     <style>
         /* Custom styles for elements that need more than Tailwind */
         body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            background-color: #f8f9fa;
+        }
+        .dark body {
+            background-color: #1a202c;
         }
         .modal {
             display: none; /* Hidden by default */
@@ -53,96 +64,155 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        .chart-tooltip {
+            background: rgba(23, 23, 23, 0.85);
+            color: white;
+            padding: 10px 12px;
+            border-radius: 8px;
+            pointer-events: none;
+            position: absolute;
+            transform: translate(-50%, -110%);
+            transition: all 0.2s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
+        }
+        .sortable:hover {
+            cursor: pointer;
+            background-color: #f0f0f0;
+        }
+        .dark .sortable:hover {
+            background-color: #2d3748;
+        }
+        .sortable .sort-icon {
+            opacity: 0.3;
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .sortable.asc .sort-icon,
+        .sortable.desc .sort-icon {
+            opacity: 1;
+        }
+
     </style>
 </head>
-<body class="bg-gray-100 dark:bg-gray-900 font-sans text-gray-900 dark:text-gray-100">
+<body class="font-sans text-gray-900 dark:text-gray-100">
 
     <div class="flex min-h-screen">
-        <!-- Sidebar -->
-        <aside class="w-20 bg-white dark:bg-gray-800/50 p-4 flex flex-col items-center space-y-6 shadow-lg fixed h-full z-10">
-            <div class="text-blue-600 font-bold text-2xl">W</div>
-            <nav class="flex flex-col items-center space-y-4 flex-grow">
-                <a href="#" class="p-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg" title="Dashboard">
+        <aside class="w-20 bg-white dark:bg-gray-800 p-4 flex flex-col items-center space-y-8 shadow-xl fixed h-full z-20">
+            <div class="text-blue-600 dark:text-blue-400 font-extrabold text-3xl">W</div>
+            <nav class="flex flex-col items-center space-y-6 flex-grow">
+                <a href="#" class="p-3 bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 rounded-lg" title="Analytics">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 13h18"/><path d="M16 3v18"/></svg>
+                </a>
+                 <a href="#" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" title="Dashboard">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </a>
             </nav>
-            <div id="settings-button" class="p-3 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer" title="Settings">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+            <div id="settings-button" class="p-3 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg cursor-pointer" title="Settings">
+               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
             </div>
         </aside>
 
-        <!-- Main Content -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20">
-            <header class="flex flex-wrap justify-between items-center gap-4 mb-6">
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20 bg-gray-50 dark:bg-gray-900/50">
+            <header class="flex flex-wrap justify-between items-center gap-4 mb-8">
                 <div>
-                    <h1 class="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">All-In-One Dashboard</h1>
-                    <p class="text-gray-500 dark:text-gray-400">Track Revenue, Expenses, Customers, and Profitability.</p>
+                    <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Analytics</h1>
+                    <p class="text-gray-500 dark:text-gray-400">Dashboard / Analytics</p>
                 </div>
                 <div class="flex items-center space-x-2 sm:space-x-4">
-                    <select id="business-filter" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-                    <button id="theme-toggle" class="p-2 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600" title="Toggle Theme"></button>
-                    <button id="add-entry-button" class="bg-blue-600 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">+ Add Entry</button>
+                    <button id="theme-toggle" class="p-2 rounded-full bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-300 shadow-sm hover:bg-gray-100 dark:hover:bg-gray-600" title="Toggle Theme"></button>
+                    <button id="add-entry-button" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-semibold">+ Add Transaction</button>
                 </div>
             </header>
-            
-            <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
-            
-            <div id="dashboard-content" class="space-y-6 hidden">
-                <!-- Stat Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" id="stats-grid"></div>
 
-                <!-- Charts and Filters -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="lg:col-span-2 bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Revenue Allocation by Sector</h2>
-                        <div id="pie-chart-container" class="flex items-center justify-center min-h-[300px]"></div>
+            <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
+
+            <div id="dashboard-content" class="space-y-8 hidden">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    <div class="xl:col-span-1 space-y-6">
+                        <div id="stats-grid" class="grid grid-cols-2 gap-6"></div>
                     </div>
-                    <div class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-md">
-                        <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-white">Filters</h2>
-                        <div class="space-y-4">
+                    <div class="xl:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
                             <div>
-                                <label for="start-date-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start Date</label>
-                                <input type="date" id="start-date-filter" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
+                                <h2 class="text-xl font-bold text-gray-800 dark:text-white">Revenue Statistics</h2>
+                                <div id="projection-tabs" class="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 space-x-1 mt-2">
+                                     <button class="projection-tab-btn bg-gray-100 dark:bg-gray-700" data-mode="actual">Actual</button>
+                                     <button class="projection-tab-btn" data-mode="projected">Projected</button>
+                                </div>
                             </div>
-                            <div>
-                                <label for="end-date-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300">End Date</label>
-                                <input type="date" id="end-date-filter" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"/>
-                            </div>
+                            <select id="revenue-timespan" class="bg-gray-100 dark:bg-gray-700 border-none rounded-md px-3 py-1 text-sm font-medium">
+                                <option value="Monthly">Monthly</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Daily">Daily</option>
+                            </select>
                         </div>
+                        <div class="h-64"><canvas id="revenue-line-chart"></canvas></div>
                     </div>
                 </div>
 
-                <!-- Transaction Table -->
-                <div id="transaction-table-container" class="bg-white dark:bg-gray-800/50 p-6 rounded-xl shadow-md"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Revenue by Source</h2>
+                         <div class="h-[250px]"><canvas id="source-pie-chart" class="max-h-[250px] mx-auto"></canvas></div>
+                    </div>
+                     <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Business Summary</h2>
+                         <div id="business-summary-container" class="space-y-3 overflow-y-auto h-[250px] pr-2"></div>
+                    </div>
+                    <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                        <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Average Daily Sales</h2>
+                        <div class="h-[250px]"><canvas id="daily-sales-bar-chart"></canvas></div>
+                    </div>
+                </div>
+
+                <div id="transaction-table-container" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"></div>
             </div>
         </main>
     </div>
 
-    <!-- Add Entry Modal -->
-    <div id="add-entry-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-md">
+    <div id="add-entry-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-800 dark:text-white">Add New Transaction</h2>
-                <button id="modal-close-button" class="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
+                <h2 class="text-2xl font-bold text-gray-800 dark:text-white">New Transaction</h2>
+                <button id="modal-close-button" class="text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 text-3xl leading-none">&times;</button>
             </div>
-            <div id="modal-error" class="bg-red-100 text-red-700 p-2 rounded-md mb-4 hidden"></div>
-            <form id="add-entry-form" class="space-y-4">
-                <!-- Form content will be dynamically generated by JS -->
+            <div id="modal-error" class="bg-red-100 text-red-700 p-3 rounded-md mb-4 hidden font-medium"></div>
+            <form id="add-entry-form" class="space-y-4"></form>
+        </div>
+    </div>
+    <div id="delete-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
+        <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-8 w-full max-w-md text-center">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Confirm Deletion</h3>
+            <p class="text-gray-600 dark:text-gray-300 mb-8">Are you sure you want to delete this transaction? This action cannot be undone.</p>
+            <div class="flex justify-center space-x-4">
+                <button type="button" id="delete-cancel-button" class="w-full px-4 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500 font-semibold">Cancel</button>
+                <button type="button" id="delete-confirm-button" class="w-full px-4 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div id="whatsapp-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
+         <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Send WhatsApp Message</h3>
+            <form id="whatsapp-form">
+                <input type="hidden" id="whatsapp-phone-number">
+                <div>
+                    <label for="whatsapp-message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
+                    <textarea id="whatsapp-message" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+                </div>
+                <div class="flex justify-end space-x-4 mt-6">
+                    <button type="button" id="whatsapp-cancel-button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Send</button>
+                </div>
             </form>
         </div>
     </div>
-    
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="modal fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
-        <div class="modal-content bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-6 w-full max-w-sm">
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Confirm Deletion</h3>
-            <p class="text-gray-600 dark:text-gray-300 mb-6">Are you sure you want to delete this entry? This action cannot be undone.</p>
-            <div class="flex justify-end space-x-3">
-                <button type="button" id="delete-cancel-button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Cancel</button>
-                <button type="button" id="delete-confirm-button" class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Delete</button>
-            </div>
+    <div id="invoice-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
+         <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl">
+            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Create Invoice</h3>
+            <form id="invoice-form" class="space-y-4">
+                </form>
         </div>
     </div>
 
@@ -151,30 +221,30 @@
     // Self-executing function to encapsulate the application logic
     (() => {
         // --- DATA ---
-        // Initial mock data. In a real app, this would come from a server.
-        // Data is stored in localStorage to persist between page reloads.
         const initialData = [
-            { id: '1', itemName: 'Alice Johnson', business: 'Web Design', date: formatDate(new Date(Date.now() - 2 * 86400000)), type: 'revenue', sector: 'Services', status: 'Member', amount: 1200, notes: 'New website project' },
-            { id: '2', itemName: 'Office Supplies', business: 'Web Design', date: formatDate(new Date(Date.now() - 5 * 86400000)), type: 'expense', sector: 'Overhead', status: 'N/A', amount: 150, notes: 'Stocked up on paper and ink' },
-            { id: '3', itemName: 'Bob Williams', business: 'Consulting', date: formatDate(new Date(Date.now() - 10 * 86400000)), type: 'revenue', sector: 'Retail', status: 'New', amount: 800, notes: 'Initial consultation' },
-            { id: '4', itemName: 'Software Subscription', business: 'Consulting', date: formatDate(new Date(Date.now() - 12 * 86400000)), type: 'expense', sector: 'Software', status: 'N/A', amount: 49.99, notes: 'Monthly CRM fee' },
-            { id: '5', itemName: 'Charlie Brown', business: 'Web Design', date: formatDate(new Date(Date.now() - 15 * 86400000)), type: 'revenue', sector: 'Services', status: 'Signed Up', amount: 2500, notes: 'E-commerce store setup' },
-            { id: '6', itemName: 'David Davis', business: 'Photography', date: formatDate(new Date(Date.now() - 7 * 86400000)), type: 'revenue', sector: 'Events', status: 'Retained', amount: 750, notes: 'Wedding photos' },
+            { id: '1', itemName: 'Alice Johnson', business: 'Web Design', date: '2025-06-26', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 300, status: 'Recurring', amount: 1500, notes: 'Monthly retainer', phone: '1112223333' },
+            { id: '2', itemName: 'Office Supplies', business: 'Overhead', date: '2025-06-24', type: 'expense', sector: 'Overhead', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 150, notes: 'Paper and ink', phone: '' },
+            { id: '3', itemName: 'Bob Williams', business: 'SEO', date: '2025-06-20', type: 'revenue', sector: 'Marketing', customerSource: 'Google Ads', fulfillmentExpense: 200, status: 'New Customer', amount: 800, notes: 'Initial consultation', phone: '4445556666' },
+            { id: '4', itemName: 'Figma Subscription', business: 'Software', date: '2025-06-18', type: 'expense', sector: 'Software', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 50, notes: 'Monthly fee', phone: '' },
+            { id: '5', itemName: 'Charlie Brown', business: 'Web Design', date: '2025-05-15', type: 'revenue', sector: 'E-commerce', customerSource: 'Instagram', fulfillmentExpense: 800, status: 'New Customer', amount: 2500, notes: 'Shopify store setup', phone: '7778889999' },
+            { id: '6', itemName: 'David Davis', business: 'Photography', date: '2025-05-12', type: 'revenue', sector: 'Events', customerSource: 'Facebook', fulfillmentExpense: 100, status: 'Recurring', amount: 750, notes: 'Wedding photos', phone: '' },
+            { id: '7', itemName: 'SEO Audit Tool', business: 'Software', date: '2025-04-10', type: 'expense', sector: 'Marketing', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 79, notes: '', phone: '' },
+            { id: '8', itemName: 'Emily Clark', business: 'SEO', date: '2025-04-05', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 150, status: 'Recurring', amount: 950, notes: 'Monthly SEO package', phone: '1234567890' },
         ];
 
         // --- APPLICATION STATE ---
         const state = {
             entries: [],
             theme: 'light',
-            filters: {
-                business: 'all',
-                type: 'all',
-                sector: '',
-                startDate: '',
-                endDate: '',
+            ui: { 
+                activeTableTab: 'all',
+                revenueTimespan: 'Monthly',
+                projectionMode: 'actual',
+                sort: { key: 'date', order: 'desc' }
             },
-            sortConfig: { key: 'date', direction: 'descending' },
+            chartInstances: {},
             itemToDelete: null,
+            itemForAction: null,
         };
 
         // --- DOM ELEMENTS ---
@@ -184,12 +254,14 @@
             dashboardContent: document.getElementById('dashboard-content'),
             themeToggle: document.getElementById('theme-toggle'),
             statsGrid: document.getElementById('stats-grid'),
-            pieChartContainer: document.getElementById('pie-chart-container'),
+            revenueLineChart: document.getElementById('revenue-line-chart'),
+            dailySalesBarChart: document.getElementById('daily-sales-bar-chart'),
+            sourcePieChart: document.getElementById('source-pie-chart'),
             transactionTableContainer: document.getElementById('transaction-table-container'),
-            businessFilter: document.getElementById('business-filter'),
-            startDateFilter: document.getElementById('start-date-filter'),
-            endDateFilter: document.getElementById('end-date-filter'),
             addEntryButton: document.getElementById('add-entry-button'),
+            revenueTimespanSelect: document.getElementById('revenue-timespan'),
+            projectionTabs: document.getElementById('projection-tabs'),
+            businessSummaryContainer: document.getElementById('business-summary-container'),
             addEntryModal: {
                 modal: document.getElementById('add-entry-modal'),
                 form: document.getElementById('add-entry-form'),
@@ -200,295 +272,436 @@
                 modal: document.getElementById('delete-modal'),
                 confirmButton: document.getElementById('delete-confirm-button'),
                 cancelButton: document.getElementById('delete-cancel-button'),
+            },
+            whatsappModal: {
+                modal: document.getElementById('whatsapp-modal'),
+                form: document.getElementById('whatsapp-form'),
+                messageInput: document.getElementById('whatsapp-message'),
+                phoneInput: document.getElementById('whatsapp-phone-number'),
+                cancelButton: document.getElementById('whatsapp-cancel-button'),
+            },
+            invoiceModal: {
+                modal: document.getElementById('invoice-modal'),
+                form: document.getElementById('invoice-form'),
             }
         };
 
-        // --- HELPER FUNCTIONS ---
-        function formatDate(date) {
-            return date.toISOString().split('T')[0];
-        }
-
-        function formatCurrency(value) {
-            return `$${(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        }
-
-        function formatPercent(value) {
-            return `${(value * 100).toFixed(1)}%`;
-        }
-
-        function saveStateToLocalStorage() {
+        // --- HELPER & UTILITY FUNCTIONS ---
+        const { parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subMonths, subWeeks, subDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } = dateFns;
+        function formatDate(date) { return format(parseISO(date), 'yyyy-MM-dd'); }
+        function formatCurrency(value) { return `$${(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
+        function formatPercent(value) { return `${(value * 100).toFixed(1)}%`; }
+        function saveState() {
             localStorage.setItem('dashboard-entries', JSON.stringify(state.entries));
             localStorage.setItem('dashboard-theme', state.theme);
         }
-
-        function loadStateFromLocalStorage() {
+        function loadState() {
             const savedEntries = localStorage.getItem('dashboard-entries');
             state.entries = savedEntries ? JSON.parse(savedEntries) : initialData;
             state.theme = localStorage.getItem('dashboard-theme') || 'light';
         }
 
-        // --- DATA PROCESSING FUNCTIONS ---
-        function getFilteredEntries() {
-            let entries = [...state.entries];
-            // Filter by business
-            if (state.filters.business !== 'all') {
-                entries = entries.filter(e => e.business === state.filters.business);
-            }
-            // Filter by date range
-            const startDate = state.filters.startDate ? new Date(state.filters.startDate + 'T00:00:00') : null;
-            const endDate = state.filters.endDate ? new Date(state.filters.endDate + 'T23:59:59') : null;
-            if (startDate && endDate) {
-                entries = entries.filter(e => {
-                    const entryDate = new Date(e.date);
-                    return entryDate >= startDate && entryDate <= endDate;
-                });
-            }
-            return entries;
-        }
+        // --- DATA PROCESSING ---
+        function calculateStats(mode = 'actual') {
+            let revenue = state.entries.filter(e => e.type === 'revenue').reduce((sum, e) => sum + e.amount, 0);
+            let expenses = state.entries.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
 
-        function getFilteredAndSortedTableEntries() {
-            let entries = getFilteredEntries();
-            // Filter by type (revenue/expense) and sector
-            if (state.filters.type !== 'all') {
-                entries = entries.filter(e => e.type === state.filters.type);
+            if (mode === 'projected') {
+                const projectedMonthlyRevenue = state.entries.filter(e => e.type === 'revenue' && e.status === 'Recurring').reduce((sum, e) => sum + e.amount, 0);
+                const projectedMonthlyExpense = state.entries.filter(e => e.type === 'expense' && e.status === 'Recurring').reduce((sum, e) => sum + e.amount, 0);
+                revenue += projectedMonthlyRevenue;
+                expenses += projectedMonthlyExpense;
             }
-            if (state.filters.sector) {
-                entries = entries.filter(e => e.sector && e.sector.toLowerCase().includes(state.filters.sector.toLowerCase()));
-            }
-
-            // Sorting logic
-            entries.sort((a, b) => {
-                const valA = a[state.sortConfig.key];
-                const valB = b[state.sortConfig.key];
-                if (valA < valB) return state.sortConfig.direction === 'ascending' ? -1 : 1;
-                if (valA > valB) return state.sortConfig.direction === 'ascending' ? 1 : -1;
-                return 0;
-            });
-            return entries;
+            
+            const netProfit = revenue - expenses;
+            const profitMargin = revenue > 0 ? netProfit / revenue : 0;
+            return { revenue, expenses, netProfit, profitMargin };
         }
         
-        function calculateStats() {
-            const filtered = getFilteredEntries();
-            const totalRevenue = filtered.filter(e => e.type === 'revenue').reduce((sum, e) => sum + (e.amount || 0), 0);
-            const totalExpenses = filtered.filter(e => e.type === 'expense').reduce((sum, e) => sum + (e.amount || 0), 0);
-            const netProfit = totalRevenue - totalExpenses;
-            const netProfitMargin = totalRevenue > 0 ? netProfit / totalRevenue : 0;
+        function aggregateDataForRevenueChart(timespan) {
+            const now = new Date();
+            let interval, dateFormat;
+            
+            if (timespan === 'Daily') {
+                interval = { start: subDays(now, 29), end: now };
+                dateFormat = 'MMM d';
+            } else if (timespan === 'Weekly') {
+                interval = { start: subWeeks(now, 11), end: now };
+                dateFormat = "'Week of' MMM d";
+            } else { // Monthly
+                interval = { start: subMonths(now, 11), end: now };
+                dateFormat = 'MMM yyyy';
+            }
 
-            return {
-                totalRevenue,
-                totalExpenses,
-                netProfit,
-                netProfitMargin,
-                totalTransactions: filtered.length,
+            const getIntervals = {
+                Daily: eachDayOfInterval(interval),
+                Weekly: eachWeekOfInterval(interval, { weekStartsOn: 1 }),
+                Monthly: eachMonthOfInterval(interval)
             };
+
+            const labels = getIntervals[timespan].map(d => format(d, dateFormat));
+            const data = labels.map(() => ({ revenue: 0, expense: 0 }));
+
+            state.entries.forEach(entry => {
+                const entryDate = parseISO(entry.date);
+                const index = getIntervals[timespan].findIndex((d, i) => {
+                    const nextDate = getIntervals[timespan][i+1] || new Date(8640000000000000); // Far future date
+                    return entryDate >= d && entryDate < nextDate;
+                });
+
+                if (index !== -1) {
+                    if (entry.type === 'revenue') data[index].revenue += entry.amount;
+                    if (entry.type === 'expense') data[index].expense += entry.amount;
+                }
+            });
+
+            return { labels, revenueData: data.map(d => d.revenue), expenseData: data.map(d => d.expense) };
         }
 
-        function getRevenueBySectorData() {
-            const sectorMap = new Map();
-            getFilteredEntries().filter(e => e.type === 'revenue').forEach(e => {
-                const sector = e.sector || 'Uncategorized';
-                sectorMap.set(sector, (sectorMap.get(sector) || 0) + (e.amount || 0));
+        // --- CHARTING FUNCTIONS ---
+        const chartStyler = {
+            getGridColor: () => state.theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
+            getLabelColor: () => state.theme === 'dark' ? '#cbd5e1' : '#64748b',
+        };
+        
+        function renderAllCharts() {
+            renderRevenueChart();
+            renderDailySalesChart();
+            renderSourcePieChart();
+        }
+
+        function renderRevenueChart() {
+            const ctx = DOMElements.revenueLineChart.getContext('2d');
+            if (state.chartInstances.revenue) state.chartInstances.revenue.destroy();
+
+            const { labels, revenueData, expenseData } = aggregateDataForRevenueChart(state.ui.revenueTimespan);
+
+            state.chartInstances.revenue = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: 'Profit', data: revenueData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 },
+                        { label: 'Loss', data: expenseData, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    scales: {
+                        y: { ticks: { callback: value => `$${value / 1000}k`, color: chartStyler.getLabelColor() }, grid: { color: chartStyler.getGridColor() }, border: { dash: [4, 4], color: chartStyler.getGridColor() } },
+                        x: { ticks: { color: chartStyler.getLabelColor() }, grid: { display: false }, border: { color: chartStyler.getGridColor() } }
+                    },
+                    plugins: { 
+                        legend: { display: false },
+                        tooltip: {
+                            enabled: false, // Disable default tooltip
+                            external: (context) => {
+                                let tooltipEl = document.getElementById('chartjs-tooltip');
+                                if (!tooltipEl) {
+                                    tooltipEl = document.createElement('div');
+                                    tooltipEl.id = 'chartjs-tooltip';
+                                    tooltipEl.className = 'chart-tooltip';
+                                    document.body.appendChild(tooltipEl);
+                                }
+                                const tooltipModel = context.tooltip;
+                                if (tooltipModel.opacity === 0) {
+                                    tooltipEl.style.opacity = 0;
+                                    return;
+                                }
+                                const title = tooltipModel.title || [];
+                                const dataPoints = tooltipModel.dataPoints || [];
+                                const series1 = dataPoints[0] ? `<div><span style="color:#3b82f6">●</span> series1: ${formatCurrency(dataPoints[0].raw)}</div>` : '';
+                                const series2 = dataPoints[1] ? `<div><span style="color:#ec4899">●</span> series2: ${formatCurrency(dataPoints[1].raw)}</div>` : '';
+                                tooltipEl.innerHTML = `
+                                    <div class="font-semibold mb-1">${title}</div>
+                                    ${series1}
+                                    ${series2}
+                                `;
+                                const position = context.chart.canvas.getBoundingClientRect();
+                                tooltipEl.style.opacity = 1;
+                                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
+                                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                            }
+                        } 
+                    }
+                }
             });
-            const total = Array.from(sectorMap.values()).reduce((sum, v) => sum + v, 0);
-            return Array.from(sectorMap, ([name, value]) => ({ name, value, percentage: total > 0 ? value / total : 0 }));
+        }
+        
+        function renderDailySalesChart() {
+            const ctx = DOMElements.dailySalesBarChart.getContext('2d');
+            if (state.chartInstances.dailySales) state.chartInstances.dailySales.destroy();
+            
+            const days = eachDayOfInterval({ start: subDays(new Date(), 13), end: new Date() });
+            const labels = days.map(d => format(d, 'MMM d'));
+            const data = labels.map(label => {
+                const daySales = state.entries.filter(e => e.type === 'revenue' && format(parseISO(e.date), 'MMM d') === label)
+                                             .reduce((sum, e) => sum + e.amount, 0);
+                return daySales;
+            });
+            
+            state.chartInstances.dailySales = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{ label: 'Sales', data, backgroundColor: '#a78bfa', borderRadius: 4 }]
+                },
+                options: {
+                     responsive: true, maintainAspectRatio: false,
+                     scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: chartStyler.getLabelColor() } } },
+                     plugins: { legend: { display: false }, tooltip: { displayColors: false } }
+                }
+            });
+        }
+
+        function renderSourcePieChart() {
+            const ctx = DOMElements.sourcePieChart.getContext('2d');
+            if (state.chartInstances.sourcePie) state.chartInstances.sourcePie.destroy();
+
+            const sourceMap = new Map();
+            state.entries.filter(e => e.type === 'revenue' && e.customerSource !== 'N/A').forEach(e => {
+                sourceMap.set(e.customerSource, (sourceMap.get(e.customerSource) || 0) + e.amount);
+            });
+            const labels = Array.from(sourceMap.keys());
+            const data = Array.from(sourceMap.values());
+            
+            state.chartInstances.sourcePie = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{ data, backgroundColor: ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#facc15'], borderWidth: 0 }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20, color: chartStyler.getLabelColor() } } }
+                }
+            });
         }
 
         // --- RENDER FUNCTIONS ---
-        
         function render() {
             renderTheme();
-            renderBusinessFilter();
             renderStats();
-            renderPieChart();
+            renderAllCharts();
+            renderBusinessSummary();
             renderTransactionTable();
-            saveStateToLocalStorage();
+            saveState();
         }
 
         function renderTheme() {
             if (state.theme === 'dark') {
                 DOMElements.html.classList.add('dark');
-                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`; // Sun Icon
+                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
             } else {
                 DOMElements.html.classList.remove('dark');
-                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`; // Moon Icon
+                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
             }
-        }
-        
-        function renderBusinessFilter() {
-            const businessOptions = ['all', ...Array.from(new Set(state.entries.map(e => e.business)))];
-            DOMElements.businessFilter.innerHTML = businessOptions.map(b => `<option value="${b}" ${state.filters.business === b ? 'selected' : ''}>${b === 'all' ? 'All Businesses' : b}</option>`).join('');
         }
         
         function renderStats() {
-            const stats = calculateStats();
+            const stats = calculateStats(state.ui.projectionMode);
             DOMElements.statsGrid.innerHTML = `
-                <div class="bg-white dark:bg-gray-800/50 p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="p-3 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div><div><p class="text-gray-500 dark:text-gray-400 text-sm">Total Revenue</p><p class="text-2xl font-bold text-gray-800 dark:text-white">${formatCurrency(stats.totalRevenue)}</p></div></div>
-                <div class="bg-white dark:bg-gray-800/50 p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="p-3 rounded-lg bg-red-100 dark:bg-red-900/50 text-red-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div><p class="text-gray-500 dark:text-gray-400 text-sm">Total Expenses</p><p class="text-2xl font-bold text-gray-800 dark:text-white">${formatCurrency(stats.totalExpenses)}</p></div></div>
-                <div class="bg-white dark:bg-gray-800/50 p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="p-3 rounded-lg ${stats.netProfit >= 0 ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-500' : 'bg-red-100 dark:bg-red-900/50 text-red-500'}"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></div><div><p class="text-gray-500 dark:text-gray-400 text-sm">Net Profit</p><p class="text-2xl font-bold text-gray-800 dark:text-white">${formatCurrency(stats.netProfit)}</p></div></div>
-                <div class="bg-white dark:bg-gray-800/50 p-5 rounded-xl shadow-md flex items-center space-x-4"><div class="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/50 text-purple-500"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6.5A3.5 3.5 0 0 0 8.5 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7A3.5 3.5 0 0 0 15 6.5z"/></svg></div><div><p class="text-gray-500 dark:text-gray-400 text-sm">Net Profit Margin</p><p class="text-2xl font-bold text-gray-800 dark:text-white">${formatPercent(stats.netProfitMargin)}</p></div></div>
-            `;
-        }
-
-        function renderPieChart() {
-            const data = getRevenueBySectorData();
-            const PIE_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF1943'];
-            
-            if (data.length === 0) {
-                DOMElements.pieChartContainer.innerHTML = `<div class="text-gray-500">No revenue data for this period.</div>`;
-                return;
-            }
-
-            let cumulativePercent = 0;
-            const slices = data.map((slice, i) => {
-                const [startX, startY] = getCoordinatesForPercent(cumulativePercent);
-                cumulativePercent += slice.percentage;
-                const [endX, endY] = getCoordinatesForPercent(cumulativePercent);
-                const largeArcFlag = slice.percentage > 0.5 ? 1 : 0;
-                const pathData = `M ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} L 0 0`;
-                return `<path d="${pathData}" fill="${PIE_COLORS[i % PIE_COLORS.length]}"></path>`;
-            }).join('');
-            
-            const legend = data.map((slice, i) => `
-                <div class="flex items-center text-sm">
-                    <span class="w-3 h-3 rounded-full mr-2" style="background-color: ${PIE_COLORS[i % PIE_COLORS.length]}"></span>
-                    <span>${slice.name} (${formatPercent(slice.percentage)})</span>
-                </div>
-            `).join('');
-
-            DOMElements.pieChartContainer.innerHTML = `
-                <div class="w-2/3 flex items-center justify-center">
-                    <svg viewBox="-1 -1 2 2" style="transform: rotate(-90deg)" class="w-full h-auto max-w-[250px]">${slices}</svg>
-                </div>
-                <div class="w-1/3 space-y-2">${legend}</div>
+                <div class="bg-violet-100 dark:bg-violet-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-violet-800 dark:text-violet-300">Total Revenue</p><p class="text-2xl font-bold text-violet-900 dark:text-violet-100">${formatCurrency(stats.revenue)}</p></div>
+                <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-red-800 dark:text-red-300">Total Expenses</p><p class="text-2xl font-bold text-red-900 dark:text-red-100">${formatCurrency(stats.expenses)}</p></div>
+                <div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-blue-800 dark:text-blue-300">Net Profit</p><p class="text-2xl font-bold text-blue-900 dark:text-blue-100">${formatCurrency(stats.netProfit)}</p></div>
+                <div class="bg-green-100 dark:bg-green-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-green-800 dark:text-green-300">Profit Margin</p><p class="text-2xl font-bold text-green-900 dark:text-green-100">${formatPercent(stats.profitMargin)}</p></div>
             `;
         }
         
-        function getCoordinatesForPercent(percent) {
-            const x = Math.cos(2 * Math.PI * percent);
-            const y = Math.sin(2 * Math.PI * percent);
-            return [x, y];
-        }
+        function renderBusinessSummary() {
+            const summary = state.entries.reduce((acc, entry) => {
+                if (!acc[entry.business]) {
+                    acc[entry.business] = { revenue: 0, expense: 0 };
+                }
+                if (entry.type === 'revenue') acc[entry.business].revenue += entry.amount;
+                else acc[entry.business].expense += entry.amount;
+                return acc;
+            }, {});
 
-        function renderTransactionTable() {
-            const entries = getFilteredAndSortedTableEntries();
-            const getSortIcon = (key) => {
-                if (state.sortConfig.key !== key) return `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-20"><path d="m6 9 6 6 6-6"/></svg>`;
-                return state.sortConfig.direction === 'ascending' ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>` : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>`;
+            const icons = {
+                'Web Design': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`, color: 'bg-blue-100 text-blue-600' },
+                'SEO': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`, color: 'bg-green-100 text-green-600' },
+                'Photography': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`, color: 'bg-purple-100 text-purple-600' },
+                'Software': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`, color: 'bg-pink-100 text-pink-600' },
+                'Overhead': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.5 12.5"/><path d="M2 12.5a10 10 0 0 0 18.5-1"/></svg>`, color: 'bg-red-100 text-red-600' },
             };
 
-            const headers = [
-                { key: 'itemName', label: 'Customer/Item' }, { key: 'business', label: 'Business' },
-                { key: 'date', label: 'Date' }, { key: 'type', label: 'Type' },
-                { key: 'sector', label: 'Sector' }, { key: 'status', label: 'Status' },
-                { key: 'amount', label: 'Amount' },
-            ];
-
+            DOMElements.businessSummaryContainer.innerHTML = Object.entries(summary).map(([business, data]) => {
+                const { icon, color } = icons[business] || { icon: '?', color: 'bg-gray-100 text-gray-600' };
+                return `
+                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${color}">${icon}</div>
+                            <div>
+                                <div class="font-bold text-gray-800 dark:text-gray-100">${business}</div>
+                                <div class="text-sm text-gray-500">${data.revenue > 0 ? `Revenue: ${formatCurrency(data.revenue)}` : `Expense: ${formatCurrency(data.expense)}`}</div>
+                            </div>
+                        </div>
+                        <div class="font-bold text-right ${data.revenue > data.expense ? 'text-green-500' : 'text-red-500'}">
+                            ${formatCurrency(data.revenue - data.expense)}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function renderTransactionTable() {
+            // Sorting
+            const { key, order } = state.ui.sort;
+            const sortedEntries = [...state.entries].sort((a, b) => {
+                const valA = a[key];
+                const valB = b[key];
+                let comparison = 0;
+                if (key === 'netAmount') {
+                    const netA = a.amount - a.fulfillmentExpense;
+                    const netB = b.amount - b.fulfillmentExpense;
+                    comparison = netA > netB ? 1 : -1;
+                } else if (typeof valA === 'string') {
+                    comparison = valA.localeCompare(valB);
+                } else if (typeof valA === 'number') {
+                    comparison = valA > valB ? 1 : -1;
+                } else { // Dates
+                     comparison = parseISO(valA) > parseISO(valB) ? 1 : -1;
+                }
+                return order === 'asc' ? comparison : -comparison;
+            });
+            
+            const tableEntries = sortedEntries.filter(e => state.ui.activeTableTab === 'all' || e.type === state.ui.activeTableTab);
             const tableHTML = `
-                <div class="flex flex-wrap gap-4 items-end mb-4">
-                    <h2 class="text-xl font-semibold text-gray-800 dark:text-white flex-grow">Recent Transactions</h2>
-                    <div class="flex items-center gap-4">
-                         <select id="type-filter" class="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="all" ${state.filters.type === 'all' ? 'selected' : ''}>All Types</option>
-                            <option value="revenue" ${state.filters.type === 'revenue' ? 'selected' : ''}>Revenue</option>
-                            <option value="expense" ${state.filters.type === 'expense' ? 'selected' : ''}>Expense</option>
-                        </select>
-                        <input type="text" id="sector-filter" placeholder="Filter by sector..." value="${state.filters.sector}" class="px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm"/>
+                <div class="flex flex-wrap justify-between items-center mb-4">
+                    <h2 class="text-xl font-bold text-gray-800 dark:text-white">Recent Activity</h2>
+                    <div class="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 space-x-1">
+                        <button class="table-tab-btn ${state.ui.activeTableTab === 'all' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="all">All</button>
+                        <button class="table-tab-btn ${state.ui.activeTableTab === 'revenue' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="revenue">Revenue</button>
+                        <button class="table-tab-btn ${state.ui.activeTableTab === 'expense' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="expense">Expense</button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
-                        <thead class="border-b border-gray-200 dark:border-gray-700">
-                            <tr>
-                                ${headers.map(h => `<th data-sort-key="${h.key}" class="p-3 text-sm font-semibold tracking-wide cursor-pointer"><div class="flex items-center gap-1">${h.label} ${getSortIcon(h.key)}</div></th>`).join('')}
-                                <th class="p-3 text-sm font-semibold tracking-wide">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="transaction-table-body">
-                            ${entries.length > 0 ? entries.map(renderTransactionRow).join('') : `<tr><td colspan="8" class="text-center p-6 text-gray-500">No matching transactions found.</td></tr>`}
-                        </tbody>
+                        <thead><tr class="text-sm text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+                            <th class="p-3 font-semibold sortable" data-sort="itemName">Customer/Item<span class="sort-icon"></span></th>
+                            <th class="p-3 font-semibold sortable" data-sort="netAmount">Net Amount<span class="sort-icon"></span></th>
+                            <th class="p-3 font-semibold sortable" data-sort="amount">Gross Amount<span class="sort-icon"></span></th>
+                            <th class="p-3 font-semibold sortable" data-sort="status">Status<span class="sort-icon"></span></th>
+                            <th class="p-3 font-semibold">Actions</th>
+                        </tr></thead>
+                        <tbody>${tableEntries.length > 0 ? tableEntries.map(renderTransactionRow).join('') : `<tr><td colspan="6" class="text-center p-8 text-gray-500">No transactions to show.</td></tr>`}</tbody>
                     </table>
-                </div>
-            `;
+                </div>`;
             DOMElements.transactionTableContainer.innerHTML = tableHTML;
-            // Re-attach event listeners for newly created elements
-            document.getElementById('type-filter').addEventListener('change', handleFilterChange);
-            document.getElementById('sector-filter').addEventListener('input', handleFilterChange);
-            DOMElements.transactionTableContainer.querySelectorAll('th[data-sort-key]').forEach(th => th.addEventListener('click', handleSortClick));
-            DOMElements.transactionTableContainer.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteClick));
+            // Re-attach listeners
+            DOMElements.transactionTableContainer.querySelectorAll('.table-tab-btn').forEach(btn => btn.addEventListener('click', handleTabClick));
+            DOMElements.transactionTableContainer.querySelectorAll('.action-btn').forEach(btn => btn.addEventListener('click', handleActionClick));
+            DOMElements.transactionTableContainer.querySelectorAll('.sortable').forEach(th => {
+                th.addEventListener('click', handleSortClick);
+                if (th.dataset.sort === key) {
+                    th.classList.add(order);
+                    th.querySelector('.sort-icon').innerHTML = order === 'asc' ? '▲' : '▼';
+                } else {
+                    th.querySelector('.sort-icon').innerHTML = '◆';
+                }
+            });
         }
 
         function renderTransactionRow(entry) {
-            const statusColor = { 'New': 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200', 'Member': 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200', 'Signed Up': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200', 'Retained': 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200', 'Default': 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200' };
+            const statusColors = { 'Recurring': 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300', 'New Customer': 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300', 'Warm Lead': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300', 'Cold Lead': 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300' };
             const avatarColor = (name = 'X') => { const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500']; return colors[name.charCodeAt(0) % colors.length]; }
-            return `
-                <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                    <td class="p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold ${avatarColor(entry.itemName)}">${(entry.itemName || 'X').charAt(0).toUpperCase()}</div><div><div class="font-bold text-gray-800 dark:text-gray-100">${entry.itemName}</div><div class="text-sm text-gray-500">${entry.notes || 'No notes'}</div></div></div></td>
-                    <td class="p-3">${entry.business}</td>
-                    <td class="p-3">${new Date(entry.date+'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</td>
-                    <td class="p-3"><span class="px-2 py-1 text-xs font-medium rounded-full ${entry.type === 'revenue' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}">${entry.type}</span></td>
-                    <td class="p-3">${entry.sector}</td>
-                    <td class="p-3"><span class="px-2 py-1 text-xs font-medium rounded-full ${statusColor[entry.status] || statusColor.Default}">${entry.status}</span></td>
-                    <td class="p-3 font-medium ${entry.type === 'revenue' ? 'text-green-500' : 'text-red-500'}">${formatCurrency(entry.amount)}</td>
-                    <td class="p-3"><button class="text-gray-400 hover:text-red-500 delete-btn" data-id="${entry.id}" title="Delete Entry"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button></td>
-                </tr>
-            `;
-        }
-        
-        function renderModalForm(type = 'revenue') {
-            const businessOptions = [...new Set(state.entries.map(e => e.business))];
-            DOMElements.addEntryModal.form.innerHTML = `
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Type</label><select name="type" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm"><option value="revenue" ${type === 'revenue' ? 'selected' : ''}>Revenue</option><option value="expense" ${type === 'expense' ? 'selected' : ''}>Expense</option></select></div>
-                    <div><label for="date" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date</label><input type="date" name="date" id="date" value="${formatDate(new Date())}" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm" required /></div>
-                </div>
-                <div><label for="amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Amount ($)</label><input type="number" step="0.01" name="amount" id="amount" placeholder="e.g., 150.50" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm" required /></div>
-                <div><label for="itemName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">${type === 'revenue' ? 'Customer Name' : 'Expense Item'}</label><input type="text" name="itemName" id="itemName" placeholder="${type === 'revenue' ? 'e.g., John Doe' : 'e.g., Office Supplies'}" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm" required /></div>
-                <div><label for="business" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Business</label><select name="business" id="business" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm">${businessOptions.map(b => `<option value="${b}">${b}</option>`).join('')}<option value="add_new">-- Add New Business --</option></select><div id="new-business-container" class="hidden mt-2"><input type="text" name="newBusiness" placeholder="New business name" class="block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm"/></div></div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label for="sector" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Sector</label><input type="text" name="sector" id="sector" placeholder="e.g., Retail, Services" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm" required /></div>
-                    <div><label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label><select name="status" id="status" class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm"><option>New</option><option>Member</option><option>Signed Up</option><option>Retained</option><option>N/A</option></select></div>
-                </div>
-                <div><label for="notes" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Notes (Optional)</label><textarea name="notes" id="notes" rows="2" placeholder="Add any relevant details..." class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 sm:text-sm"></textarea></div>
-                <div class="flex justify-end space-x-3 pt-2"><button type="button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500 modal-cancel">Cancel</button><button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:bg-blue-400">Save Entry</button></div>
-            `;
-            // Attach listeners to new form elements
-            DOMElements.addEntryModal.form.querySelector('select[name="type"]').addEventListener('change', (e) => renderModalForm(e.target.value));
-            DOMElements.addEntryModal.form.querySelector('select[name="business"]').addEventListener('change', handleNewBusinessSelect);
-            DOMElements.addEntryModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
+            const netAmount = entry.amount - (entry.fulfillmentExpense || 0);
+            return `<tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                <td class="p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold ${avatarColor(entry.itemName)}">${(entry.itemName || 'X').charAt(0).toUpperCase()}</div><div><div class="font-bold text-gray-800 dark:text-gray-100">${entry.itemName}</div><div class="text-sm text-gray-500">${format(parseISO(entry.date), 'MMM d, yyyy')}</div></div></div></td>
+                <td class="p-3 font-bold ${netAmount >= 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(netAmount)}</td>
+                <td class="p-3 text-gray-600 dark:text-gray-300">${formatCurrency(entry.amount)}</td>
+                <td class="p-3"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[entry.status] || ''}">${entry.status}</span></td>
+                <td class="p-3"><div class="flex items-center space-x-2">
+                    ${entry.phone ? `<button class="text-gray-400 hover:text-green-500 action-btn" data-id="${entry.id}" data-action="whatsapp" title="WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.75 13.96c.25.13.41.2.52.28.11.08.23.18.23.34a.48.48 0 01-.06.24c-.05.09-.1.15-.12.18-.03.03-.06.06-.09.08s-.06.05-.09.08a.5.5 0 01-.18.12c-.06.03-.12.06-.2.09-.07.03-.15.06-.23.09-.08.03-.17.06-.28.09-.1.03-.22.05-.34.06a2.3 2.3 0 01-.5.06h-.14c-.16 0-.33-.02-.5-.06a4.2 4.2 0 01-1.04-.34 6.4 6.4 0 01-1.5-.78 8.4 8.4 0 01-1.74-1.35c-.4-.52-.73-1-1-1.5-.25-.52-.42-1-.52-1.41-.03-.12-.05-.24-.06-.37s0-.25.02-.37a.8.8 0 01.12-.34c.05-.08.1-.15.18-.21.07-.06.14-.1.2-.13.03-.01.05-.03.06-.04a.3.3 0 01.12-.06c.06-.01.12 0 .18.01.06 0 .12.03.18.06.06.03.1.06.14.09.04.03.06.06.09.08.03.02.05.04.06.06.03.03.05.06.06.09s.03.05.03.08a.2.2 0 010 .12.3.3 0 01-.03.11c-.02.03-.03.06-.06.09l-.28.34c-.1.13-.15.2-.15.21a.1.1 0 000 .09c.01.03.03.06.06.09.28.41.63.78 1.04 1.1.4.34.8.6 1.2.77.06.03.1.06.14.08.04.02.06.03.09.03h.09c.03 0 .06-.01.09-.03l.34-.41c.03-.03.06-.06.09-.08a.3.3 0 01.18-.06.4.4 0 01.21.03c.06.03.12.06.15.09s.06.06.09.09a.5.5 0 01.12.18c.03.06.06.12.08.2zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18.5a8.5 8.5 0 110-17 8.5 8.5 0 010 17z"/></svg></button>` : ''}
+                    ${entry.type === 'revenue' ? `<button class="text-gray-400 hover:text-blue-500 action-btn" data-id="${entry.id}" data-action="invoice" title="Create Invoice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>` : ''}
+                    <button class="text-gray-400 hover:text-red-500 action-btn" data-id="${entry.id}" data-action="delete" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
+                </div></td>
+            </tr>`;
         }
 
+        function renderModalForm() {
+            const formFields = [
+                { name: 'type', label: 'Type', type: 'select', options: ['revenue', 'expense'] },
+                { name: 'date', label: 'Date', type: 'date' },
+                { name: 'itemName', label: 'Customer/Item Name', placeholder: 'e.g., John Doe' },
+                { name: 'phone', label: 'Phone (Optional)', type: 'tel', placeholder: '1234567890' },
+                { name: 'business', label: 'Business', placeholder: 'e.g., Web Design' },
+                { name: 'amount', label: 'Amount ($)', type: 'number', placeholder: '1500.00' },
+                { name: 'fulfillmentExpense', label: 'Est. Fulfillment Cost ($)', type: 'number', placeholder: '250.00' },
+                { name: 'sector', label: 'Sector / Tag', placeholder: 'e.g., Services, Marketing' },
+                { name: 'customerSource', label: 'Customer Source', placeholder: 'e.g., Referral, Google Ads' },
+                { name: 'status', label: 'Status', type: 'select', options: ['New Customer', 'Warm Lead', 'Cold Lead', 'Recurring', 'N/A'] },
+                { name: 'notes', label: 'Notes (Optional)', type: 'textarea' }
+            ];
+            
+            DOMElements.addEntryModal.form.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${formFields.map(f => `<div class="${f.type === 'textarea' ? 'md:col-span-2' : ''}">${renderFormField(f)}</div>`).join('')}
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="modal-cancel px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Transaction</button>
+                </div>`;
+            DOMElements.addEntryModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
+        }
+        
+        function renderFormField(field) {
+            const baseInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
+            const labelHTML = `<label for="${field.name}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">${field.label}</label>`;
+            if (field.type === 'select') {
+                return `${labelHTML}<select name="${field.name}" id="${field.name}" class="${baseInputClass}">${field.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+            } else if (field.type === 'textarea') {
+                return `${labelHTML}<textarea name="${field.name}" id="${field.name}" rows="2" class="${baseInputClass}" placeholder="${field.placeholder || ''}"></textarea>`;
+            } else {
+                return `${labelHTML}<input type="${field.type || 'text'}" name="${field.name}" id="${field.name}" class="${baseInputClass}" placeholder="${field.placeholder || ''}" ${field.type === 'date' ? `value="${format(new Date(), 'yyyy-MM-dd')}"` : ''} ${field.name === 'amount' ? 'required' : ''}>`;
+            }
+        }
+        
         // --- EVENT HANDLERS ---
         function toggleTheme() {
             state.theme = state.theme === 'light' ? 'dark' : 'light';
             render();
         }
-        
-        function handleFilterChange(e) {
-            const { id, value } = e.target;
-            if (id === 'business-filter') state.filters.business = value;
-            if (id === 'start-date-filter') state.filters.startDate = value;
-            if (id === 'end-date-filter') state.filters.endDate = value;
-            if (id === 'type-filter') state.filters.type = value;
-            if (id === 'sector-filter') state.filters.sector = value;
-            render();
+
+        function handleTabClick(e) {
+            state.ui.activeTableTab = e.target.dataset.tab;
+            renderTransactionTable();
         }
         
         function handleSortClick(e) {
-            const key = e.currentTarget.dataset.sortKey;
-            if (!key) return;
-            const direction = (state.sortConfig.key === key && state.sortConfig.direction === 'ascending') ? 'descending' : 'ascending';
-            state.sortConfig = { key, direction };
+            const newKey = e.currentTarget.dataset.sort;
+            if (state.ui.sort.key === newKey) {
+                state.ui.sort.order = state.ui.sort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                state.ui.sort.key = newKey;
+                state.ui.sort.order = 'desc';
+            }
             renderTransactionTable();
         }
 
-        function handleDeleteClick(e) {
-            state.itemToDelete = e.currentTarget.dataset.id;
-            toggleModal(DOMElements.deleteModal.modal, true);
+        function handleActionClick(e) {
+            const id = e.currentTarget.dataset.id;
+            const action = e.currentTarget.dataset.action;
+            state.itemForAction = state.entries.find(entry => entry.id === id);
+            
+            if (action === 'delete') {
+                toggleModal(DOMElements.deleteModal.modal, true);
+            } else if (action === 'whatsapp') {
+                const customerName = state.itemForAction.itemName.split(' ')[0];
+                DOMElements.whatsappModal.phoneInput.value = state.itemForAction.phone;
+                DOMElements.whatsappModal.messageInput.value = `Hi ${customerName}, just following up on...`;
+                toggleModal(DOMElements.whatsappModal.modal, true);
+            } else if (action === 'invoice') {
+                renderInvoiceForm(state.itemForAction);
+                toggleModal(DOMElements.invoiceModal.modal, true);
+            }
         }
 
         function confirmDelete() {
-            state.entries = state.entries.filter(entry => entry.id !== state.itemToDelete);
-            state.itemToDelete = null;
+            state.entries = state.entries.filter(entry => entry.id !== state.itemForAction.id);
+            state.itemForAction = null;
             toggleModal(DOMElements.deleteModal.modal, false);
             render();
         }
@@ -497,33 +710,17 @@
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            const finalBusiness = data.business === 'add_new' ? data.newBusiness : data.business;
-
-            if (!data.amount || !data.itemName || !data.date || !data.sector || !finalBusiness) {
-                DOMElements.addEntryModal.error.textContent = 'Please fill in all required fields.';
+            
+            if (!data.amount || !data.itemName) {
+                DOMElements.addEntryModal.error.textContent = 'Please fill out at least the item name and amount.';
                 DOMElements.addEntryModal.error.classList.remove('hidden');
                 return;
             }
             
-            const newEntry = {
-                id: crypto.randomUUID(),
-                itemName: data.itemName,
-                business: finalBusiness,
-                date: data.date,
-                type: data.type,
-                sector: data.sector,
-                status: data.status,
-                amount: parseFloat(data.amount),
-                notes: data.notes
-            };
-            
+            const newEntry = { id: crypto.randomUUID(), ...data, amount: parseFloat(data.amount), fulfillmentExpense: parseFloat(data.fulfillmentExpense || 0) };
             state.entries.unshift(newEntry);
             toggleModal(DOMElements.addEntryModal.modal, false);
             render();
-        }
-        
-        function handleNewBusinessSelect(e) {
-            document.getElementById('new-business-container').classList.toggle('hidden', e.target.value !== 'add_new');
         }
 
         function toggleModal(modalElement, show) {
@@ -537,29 +734,113 @@
                 modalElement.style.display = 'none';
             }
         }
+
+        function handleRevenueTimespanChange(e) {
+            state.ui.revenueTimespan = e.target.value;
+            renderRevenueChart();
+        }
         
+        function handleProjectionTabClick(e) {
+            const mode = e.currentTarget.dataset.mode;
+            state.ui.projectionMode = mode;
+            DOMElements.projectionTabs.querySelectorAll('.projection-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700');
+            });
+            e.currentTarget.classList.add('bg-gray-100', 'dark:bg-gray-700');
+            renderStats();
+        }
+        
+        // --- FEATURE FUNCTIONS: WHATSAPP & INVOICE ---
+        function handleWhatsappSubmit(e) {
+            e.preventDefault();
+            const phone = DOMElements.whatsappModal.phoneInput.value;
+            const message = encodeURIComponent(DOMElements.whatsappModal.messageInput.value);
+            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
+            toggleModal(DOMElements.whatsappModal.modal, false);
+        }
+
+        function renderInvoiceForm(entry) {
+            DOMElements.invoiceModal.form.innerHTML = `
+                <input type="hidden" name="id" value="${entry.id}">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-sm font-medium">From</label><input name="from_name" class="form-input" value="My Company Inc."></div>
+                    <div><label class="block text-sm font-medium">To</label><input name="to_name" class="form-input" value="${entry.itemName}"></div>
+                    <div><label class="block text-sm font-medium">Invoice #</label><input name="invoice_num" class="form-input" value="${'INV-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000)}"></div>
+                    <div><label class="block text-sm font-medium">Date</label><input name="invoice_date" type="date" class="form-input" value="${format(new Date(), 'yyyy-MM-dd')}"></div>
+                </div>
+                <hr class="my-4 dark:border-gray-600">
+                <div id="invoice-items">
+                    <div class="flex gap-4 items-end">
+                        <div class="flex-grow"><label class="block text-sm font-medium">Description</label><input name="item_desc" class="form-input" value="${entry.notes || entry.business + ' Services'}"></div>
+                        <div class="w-24"><label class="block text-sm font-medium">Qty</label><input name="item_qty" type="number" class="form-input" value="1"></div>
+                        <div class="w-32"><label class="block text-sm font-medium">Unit Price</label><input name="item_price" type="number" class="form-input" value="${entry.amount}"></div>
+                    </div>
+                </div>
+                 <div class="text-right mt-4 font-bold text-lg">Total: <span id="invoice-total">${formatCurrency(entry.amount)}</span></div>
+                 <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" class="modal-cancel px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Download Invoice</button>
+                </div>
+                <style>.form-input { display: block; width: 100%; padding: 0.5rem; margin-top: 0.25rem; border-radius: 0.375rem; background-color: rgb(249 250 251); border: 1px solid rgb(209 213 219); } .dark .form-input { background-color: rgb(55 65 81); border-color: rgb(75 85 99); }</style>
+            `;
+            DOMElements.invoiceModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.invoiceModal.modal, false));
+        }
+
+        function handleInvoiceSubmit(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+            const total = data.item_qty * data.item_price;
+
+            const invoiceHTML = `
+                <html><head><title>Invoice ${data.invoice_num}</title><script src="https://cdn.tailwindcss.com"></script></head>
+                <body class="font-sans p-8 bg-gray-100"><div class="max-w-4xl mx-auto bg-white p-10 rounded-lg shadow-xl">
+                    <div class="flex justify-between items-start mb-10">
+                        <div><h1 class="text-4xl font-bold text-gray-800">INVOICE</h1><p class="text-gray-500">#${data.invoice_num}</p></div>
+                        <div class="text-right"><h2 class="text-2xl font-semibold">${data.from_name}</h2><p>123 Main St, Anytown, USA</p></div>
+                    </div>
+                    <div class="flex justify-between mb-10">
+                        <div><p class="font-bold text-gray-600">Bill To:</p><p>${data.to_name}</p></div>
+                        <div class="text-right"><p><span class="font-bold text-gray-600">Date:</span> ${format(parseISO(data.invoice_date), 'MMM d, yyyy')}</p></div>
+                    </div>
+                    <table class="w-full text-left mb-10">
+                        <thead class="bg-gray-100"><tr class="text-gray-600">
+                            <th class="p-3 font-semibold">Description</th><th class="p-3 font-semibold text-center">Qty</th>
+                            <th class="p-3 font-semibold text-right">Unit Price</th><th class="p-3 font-semibold text-right">Total</th>
+                        </tr></thead>
+                        <tbody><tr class="border-b"><td class="p-3">${data.item_desc}</td><td class="p-3 text-center">${data.item_qty}</td>
+                            <td class="p-3 text-right">${formatCurrency(data.item_price)}</td><td class="p-3 text-right">${formatCurrency(total)}</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="text-right"><p class="text-gray-500">Subtotal</p><p class="text-2xl font-bold">${formatCurrency(total)}</p></div>
+                    <div class="mt-16 text-center text-gray-500 text-sm"><p>Thank you for your business!</p></div>
+                </div></body></html>
+            `;
+            
+            const blob = new Blob([invoiceHTML], { type: 'text/html' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Invoice-${data.invoice_num}.html`;
+            link.click();
+            URL.revokeObjectURL(link.href);
+            toggleModal(DOMElements.invoiceModal.modal, false);
+        }
+
         // --- INITIALIZATION ---
         function init() {
-            loadStateFromLocalStorage();
-
-            // Set default date range: last 30 days
-            const today = new Date();
-            const thirtyDaysAgo = new Date(new Date().setDate(today.getDate() - 30));
-            state.filters.startDate = DOMElements.startDateFilter.value = formatDate(thirtyDaysAgo);
-            state.filters.endDate = DOMElements.endDateFilter.value = formatDate(today);
-
-            // Attach event listeners
+            loadState();
             DOMElements.themeToggle.addEventListener('click', toggleTheme);
-            DOMElements.businessFilter.addEventListener('change', handleFilterChange);
-            DOMElements.startDateFilter.addEventListener('change', handleFilterChange);
-            DOMElements.endDateFilter.addEventListener('change', handleFilterChange);
             DOMElements.addEntryButton.addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, true));
             DOMElements.addEntryModal.closeButton.addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
             DOMElements.addEntryModal.form.addEventListener('submit', handleFormSubmit);
             DOMElements.deleteModal.confirmButton.addEventListener('click', confirmDelete);
             DOMElements.deleteModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.deleteModal.modal, false));
-            
-            // Initial render after a short delay to simulate loading
+            DOMElements.revenueTimespanSelect.addEventListener('change', handleRevenueTimespanChange);
+            DOMElements.projectionTabs.querySelectorAll('.projection-tab-btn').forEach(btn => btn.addEventListener('click', handleProjectionTabClick));
+            DOMElements.whatsappModal.form.addEventListener('submit', handleWhatsappSubmit);
+            DOMElements.whatsappModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.whatsappModal.modal, false));
+            DOMElements.invoiceModal.form.addEventListener('submit', handleInvoiceSubmit);
+
             setTimeout(() => {
                 DOMElements.loader.style.display = 'none';
                 DOMElements.dashboardContent.classList.remove('hidden');
@@ -567,7 +848,6 @@
             }, 500);
         }
 
-        // Run the app when the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', init);
     })();
     </script>
