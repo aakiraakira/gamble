@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Dashboard</title>
+    <title>Functional Analytics Dashboard</title>
+    <!-- Tailwind CSS for styling -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for a nicer look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js for beautiful charts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <!-- date-fns for date manipulation -->
     <script src="https://cdn.jsdelivr.net/npm/date-fns@3.6.0/cdn.min.js"></script>
-
+    
     <script>
         // Custom Tailwind theme configuration
         tailwind.config = {
@@ -20,27 +24,16 @@
                     fontFamily: {
                         sans: ['Inter', 'sans-serif'],
                     },
-                    colors: {
-                        'custom-purple': '#6A5ACD',
-                        'custom-green': '#32CD32',
-                        'custom-blue': '#4169E1',
-                        'custom-pink': '#FF69B4',
-                        'custom-red': '#DC143C',
-                    }
                 }
             }
         }
     </script>
-
+    
     <style>
         /* Custom styles for elements that need more than Tailwind */
         body {
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
-            background-color: #f8f9fa;
-        }
-        .dark body {
-            background-color: #1a202c;
         }
         .modal {
             display: none; /* Hidden by default */
@@ -53,52 +46,34 @@
             border-top-color: #3498db;
             animation: spin 1s linear infinite;
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-        @keyframes slideInUp {
-            from { transform: translateY(30px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        .chart-tooltip {
-            background: rgba(23, 23, 23, 0.85);
-            color: white;
-            padding: 10px 12px;
-            border-radius: 8px;
-            pointer-events: none;
-            position: absolute;
-            transform: translate(-50%, -110%);
-            transition: all 0.2s ease-out;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(4px);
-        }
-        .sortable:hover {
+        th.sortable:hover {
             cursor: pointer;
-            background-color: #f0f0f0;
+            background-color: #f9fafb;
         }
-        .dark .sortable:hover {
-            background-color: #2d3748;
+        .dark th.sortable:hover {
+             background-color: #374151;
         }
-        .sortable .sort-icon {
+        th.sortable .sort-indicator {
             opacity: 0.3;
-            display: inline-block;
-            margin-left: 4px;
+            transition: opacity 0.2s;
         }
-        .sortable.asc .sort-icon,
-        .sortable.desc .sort-icon {
+        th.sortable:hover .sort-indicator {
+            opacity: 0.7;
+        }
+        th.sort-asc .sort-indicator,
+        th.sort-desc .sort-indicator {
             opacity: 1;
         }
 
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="font-sans text-gray-900 dark:text-gray-100">
+<body class="bg-gray-50 dark:bg-gray-900/50 font-sans text-gray-900 dark:text-gray-100">
 
     <div class="flex min-h-screen">
+        <!-- Sidebar -->
         <aside class="w-20 bg-white dark:bg-gray-800 p-4 flex flex-col items-center space-y-8 shadow-xl fixed h-full z-20">
             <div class="text-blue-600 dark:text-blue-400 font-extrabold text-3xl">W</div>
             <nav class="flex flex-col items-center space-y-6 flex-grow">
@@ -114,7 +89,8 @@
             </div>
         </aside>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20 bg-gray-50 dark:bg-gray-900/50">
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 ml-20">
             <header class="flex flex-wrap justify-between items-center gap-4 mb-8">
                 <div>
                     <h1 class="text-3xl font-bold text-gray-800 dark:text-white">Analytics</h1>
@@ -125,53 +101,54 @@
                     <button id="add-entry-button" class="bg-blue-600 text-white px-5 py-2.5 rounded-lg shadow-md hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 font-semibold">+ Add Transaction</button>
                 </div>
             </header>
-
+            
             <div id="loader" class="flex justify-center items-center h-64"><div class="loader h-16 w-16 border-4 border-gray-200 dark:border-gray-700 rounded-full"></div></div>
-
+            
             <div id="dashboard-content" class="space-y-8 hidden">
+                <!-- Stat Cards & Revenue Chart -->
                 <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
                     <div class="xl:col-span-1 space-y-6">
+                        <div class="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 space-x-1">
+                             <button class="stat-view-btn flex-1" data-view="Actual">Actual</button>
+                             <button class="stat-view-btn flex-1" data-view="Projected">Projected</button>
+                        </div>
                         <div id="stats-grid" class="grid grid-cols-2 gap-6"></div>
                     </div>
                     <div class="xl:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
-                            <div>
-                                <h2 class="text-xl font-bold text-gray-800 dark:text-white">Revenue Statistics</h2>
-                                <div id="projection-tabs" class="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 space-x-1 mt-2">
-                                     <button class="projection-tab-btn bg-gray-100 dark:bg-gray-700" data-mode="actual">Actual</button>
-                                     <button class="projection-tab-btn" data-mode="projected">Projected</button>
-                                </div>
-                            </div>
-                            <select id="revenue-timespan" class="bg-gray-100 dark:bg-gray-700 border-none rounded-md px-3 py-1 text-sm font-medium">
-                                <option value="Monthly">Monthly</option>
-                                <option value="Weekly">Weekly</option>
+                            <h2 class="text-xl font-bold text-gray-800 dark:text-white">Revenue Statistics</h2>
+                            <select id="revenue-timespan" class="bg-gray-100 dark:bg-gray-700 border-none rounded-md px-3 py-1 text-sm font-medium focus:ring-2 focus:ring-blue-500">
                                 <option value="Daily">Daily</option>
+                                <option value="Weekly">Weekly</option>
+                                <option value="Monthly" selected>Monthly</option>
                             </select>
                         </div>
                         <div class="h-64"><canvas id="revenue-line-chart"></canvas></div>
                     </div>
                 </div>
 
+                <!-- Mid-row Content -->
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Revenue by Source</h2>
-                         <div class="h-[250px]"><canvas id="source-pie-chart" class="max-h-[250px] mx-auto"></canvas></div>
+                    <div class="lg:col-span-1 grid grid-cols-1 gap-8">
+                         <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                             <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Revenue by Source</h2>
+                             <div class="h-56"><canvas id="source-pie-chart" class="mx-auto"></canvas></div>
+                         </div>
+                         <div id="business-breakdown-container" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"></div>
                     </div>
-                     <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
-                         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Business Summary</h2>
-                         <div id="business-summary-container" class="space-y-3 overflow-y-auto h-[250px] pr-2"></div>
-                    </div>
-                    <div class="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
+                    <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg">
                         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Average Daily Sales</h2>
-                        <div class="h-[250px]"><canvas id="daily-sales-bar-chart"></canvas></div>
+                        <div class="h-[330px]"><canvas id="daily-sales-bar-chart"></canvas></div>
                     </div>
                 </div>
 
+                <!-- Transaction Table -->
                 <div id="transaction-table-container" class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-lg"></div>
             </div>
         </main>
     </div>
 
+    <!-- Modals -->
     <div id="add-entry-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
         <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg">
             <div class="flex justify-between items-center mb-6">
@@ -192,59 +169,40 @@
             </div>
         </div>
     </div>
-    <div id="whatsapp-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
-         <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-lg">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Send WhatsApp Message</h3>
-            <form id="whatsapp-form">
-                <input type="hidden" id="whatsapp-phone-number">
-                <div>
-                    <label for="whatsapp-message" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Message</label>
-                    <textarea id="whatsapp-message" rows="4" class="mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
-                </div>
-                <div class="flex justify-end space-x-4 mt-6">
-                    <button type="button" id="whatsapp-cancel-button" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">Send</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    <div id="invoice-modal" class="modal fixed inset-0 bg-black/60 flex justify-center items-center z-50 p-4">
-         <div class="modal-content bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 w-full max-w-2xl">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Create Invoice</h3>
-            <form id="invoice-form" class="space-y-4">
-                </form>
-        </div>
-    </div>
-
 
     <script>
     // Self-executing function to encapsulate the application logic
     (() => {
+        const {
+            parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval,
+        } = dateFns;
+
         // --- DATA ---
+        // Enhanced initial data with more realistic values
         const initialData = [
-            { id: '1', itemName: 'Alice Johnson', business: 'Web Design', date: '2025-06-26', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 300, status: 'Recurring', amount: 1500, notes: 'Monthly retainer', phone: '1112223333' },
-            { id: '2', itemName: 'Office Supplies', business: 'Overhead', date: '2025-06-24', type: 'expense', sector: 'Overhead', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 150, notes: 'Paper and ink', phone: '' },
-            { id: '3', itemName: 'Bob Williams', business: 'SEO', date: '2025-06-20', type: 'revenue', sector: 'Marketing', customerSource: 'Google Ads', fulfillmentExpense: 200, status: 'New Customer', amount: 800, notes: 'Initial consultation', phone: '4445556666' },
-            { id: '4', itemName: 'Figma Subscription', business: 'Software', date: '2025-06-18', type: 'expense', sector: 'Software', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 50, notes: 'Monthly fee', phone: '' },
-            { id: '5', itemName: 'Charlie Brown', business: 'Web Design', date: '2025-05-15', type: 'revenue', sector: 'E-commerce', customerSource: 'Instagram', fulfillmentExpense: 800, status: 'New Customer', amount: 2500, notes: 'Shopify store setup', phone: '7778889999' },
-            { id: '6', itemName: 'David Davis', business: 'Photography', date: '2025-05-12', type: 'revenue', sector: 'Events', customerSource: 'Facebook', fulfillmentExpense: 100, status: 'Recurring', amount: 750, notes: 'Wedding photos', phone: '' },
-            { id: '7', itemName: 'SEO Audit Tool', business: 'Software', date: '2025-04-10', type: 'expense', sector: 'Marketing', customerSource: 'N/A', fulfillmentExpense: 0, status: 'Recurring', amount: 79, notes: '', phone: '' },
-            { id: '8', itemName: 'Emily Clark', business: 'SEO', date: '2025-04-05', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 150, status: 'Recurring', amount: 950, notes: 'Monthly SEO package', phone: '1234567890' },
+            { id: '1', itemName: 'Alice Johnson', business: 'Web Design', date: '2025-06-26', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 300, projectedExpense: 350, status: 'Recurring', amount: 1500 },
+            { id: '2', itemName: 'Office Supplies', business: 'Overhead', date: '2025-06-24', type: 'expense', sector: 'General', customerSource: 'N/A', fulfillmentExpense: 0, projectedExpense: 150, status: 'Actual', amount: 150 },
+            { id: '3', itemName: 'Bob Williams', business: 'SEO', date: '2025-06-20', type: 'revenue', sector: 'Marketing', customerSource: 'Google Ads', fulfillmentExpense: 200, projectedExpense: 200, status: 'New Customer', amount: 800 },
+            { id: '4', itemName: 'Figma Subscription', business: 'Software', date: '2025-06-18', type: 'expense', sector: 'Tools', customerSource: 'N/A', fulfillmentExpense: 0, projectedExpense: 50, status: 'Recurring', amount: 50 },
+            { id: '5', itemName: 'Charlie Brown', business: 'Web Design', date: '2025-06-15', type: 'revenue', sector: 'E-commerce', customerSource: 'Instagram', fulfillmentExpense: 800, projectedExpense: 900, status: 'Warm Lead', amount: 2500 },
+            { id: '6', itemName: 'David Davis', business: 'Photography', date: '2025-05-28', type: 'revenue', sector: 'Events', customerSource: 'Facebook', fulfillmentExpense: 100, projectedExpense: 120, status: 'Recurring', amount: 750 },
+            { id: '7', itemName: 'Eva Green', business: 'Web Design', date: '2025-05-10', type: 'revenue', sector: 'Services', customerSource: 'Referral', fulfillmentExpense: 400, projectedExpense: 450, status: 'New Customer', amount: 1800 },
+            { id: '8', itemName: 'Adobe Creative Cloud', business: 'Software', date: '2025-05-05', type: 'expense', sector: 'Tools', customerSource: 'N/A', fulfillmentExpense: 0, projectedExpense: 80, status: 'Recurring', amount: 80 },
+            { id: '9', itemName: 'Frank White', business: 'SEO', date: '2025-04-22', type: 'revenue', sector: 'Marketing', customerSource: 'Google Ads', fulfillmentExpense: 250, projectedExpense: 250, status: 'Recurring', amount: 950 },
+            { id: '10', itemName: 'Grace Hall', business: 'Photography', date: '2025-04-15', type: 'revenue', sector: 'Creative', customerSource: 'Instagram', fulfillmentExpense: 150, projectedExpense: 180, status: 'Warm Lead', amount: 600 },
         ];
 
         // --- APPLICATION STATE ---
         const state = {
             entries: [],
             theme: 'light',
-            ui: { 
+            ui: {
                 activeTableTab: 'all',
-                revenueTimespan: 'Monthly',
-                projectionMode: 'actual',
-                sort: { key: 'date', order: 'desc' }
+                revenueChartTimespan: 'Monthly',
+                statsView: 'Actual', // 'Actual' or 'Projected'
+                sort: { key: 'date', order: 'desc' },
             },
             chartInstances: {},
-            itemToDelete: null,
-            itemForAction: null,
         };
 
         // --- DOM ELEMENTS ---
@@ -258,381 +216,323 @@
             dailySalesBarChart: document.getElementById('daily-sales-bar-chart'),
             sourcePieChart: document.getElementById('source-pie-chart'),
             transactionTableContainer: document.getElementById('transaction-table-container'),
+            businessBreakdownContainer: document.getElementById('business-breakdown-container'),
             addEntryButton: document.getElementById('add-entry-button'),
-            revenueTimespanSelect: document.getElementById('revenue-timespan'),
-            projectionTabs: document.getElementById('projection-tabs'),
-            businessSummaryContainer: document.getElementById('business-summary-container'),
-            addEntryModal: {
-                modal: document.getElementById('add-entry-modal'),
-                form: document.getElementById('add-entry-form'),
-                closeButton: document.getElementById('modal-close-button'),
-                error: document.getElementById('modal-error'),
-            },
-            deleteModal: {
-                modal: document.getElementById('delete-modal'),
-                confirmButton: document.getElementById('delete-confirm-button'),
-                cancelButton: document.getElementById('delete-cancel-button'),
-            },
-            whatsappModal: {
-                modal: document.getElementById('whatsapp-modal'),
-                form: document.getElementById('whatsapp-form'),
-                messageInput: document.getElementById('whatsapp-message'),
-                phoneInput: document.getElementById('whatsapp-phone-number'),
-                cancelButton: document.getElementById('whatsapp-cancel-button'),
-            },
-            invoiceModal: {
-                modal: document.getElementById('invoice-modal'),
-                form: document.getElementById('invoice-form'),
-            }
+            revenueTimespan: document.getElementById('revenue-timespan'),
+            statViewButtons: document.querySelectorAll('.stat-view-btn'),
+            addEntryModal: { modal: document.getElementById('add-entry-modal'), form: document.getElementById('add-entry-form'), closeButton: document.getElementById('modal-close-button'), error: document.getElementById('modal-error') },
+            deleteModal: { modal: document.getElementById('delete-modal'), confirmButton: document.getElementById('delete-confirm-button'), cancelButton: document.getElementById('delete-cancel-button') },
         };
 
-        // --- HELPER & UTILITY FUNCTIONS ---
-        const { parseISO, format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, subMonths, subWeeks, subDays, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } = dateFns;
-        function formatDate(date) { return format(parseISO(date), 'yyyy-MM-dd'); }
-        function formatCurrency(value) { return `$${(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`; }
-        function formatPercent(value) { return `${(value * 100).toFixed(1)}%`; }
-        function saveState() {
-            localStorage.setItem('dashboard-entries', JSON.stringify(state.entries));
-            localStorage.setItem('dashboard-theme', state.theme);
+        // --- HELPER & FORMATTING FUNCTIONS ---
+        const formatCurrency = (value) => `$${(value || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const formatPercent = (value) => `${(value * 100).toFixed(1)}%`;
+        const saveState = () => {
+            localStorage.setItem('dashboard-entries-v2', JSON.stringify(state.entries));
+            localStorage.setItem('dashboard-theme-v2', state.theme);
         }
-        function loadState() {
-            const savedEntries = localStorage.getItem('dashboard-entries');
-            state.entries = savedEntries ? JSON.parse(savedEntries) : initialData;
-            state.theme = localStorage.getItem('dashboard-theme') || 'light';
+        const loadState = () => {
+            const savedEntries = localStorage.getItem('dashboard-entries-v2');
+            state.entries = (savedEntries ? JSON.parse(savedEntries) : initialData).map(e => ({...e, dateObj: parseISO(e.date)}));
+            state.theme = localStorage.getItem('dashboard-theme-v2') || 'light';
         }
 
-        // --- DATA PROCESSING ---
-        function calculateStats(mode = 'actual') {
-            let revenue = state.entries.filter(e => e.type === 'revenue').reduce((sum, e) => sum + e.amount, 0);
-            let expenses = state.entries.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+        // --- DATA PROCESSING & CALCULATIONS ---
+        const calculateStats = (view = 'Actual') => {
+            const revenue = state.entries.filter(e => e.type === 'revenue').reduce((sum, e) => sum + e.amount, 0);
+            const expenses = state.entries.filter(e => e.type === 'expense').reduce((sum, e) => sum + e.amount, 0);
+            const projectedExpenses = state.entries.reduce((sum, e) => {
+                if(e.type === 'expense') return sum + e.projectedExpense;
+                if(e.type === 'revenue') return sum + e.projectedExpense; // fulfillment cost is also a projected expense
+                return sum;
+            }, 0);
 
-            if (mode === 'projected') {
-                const projectedMonthlyRevenue = state.entries.filter(e => e.type === 'revenue' && e.status === 'Recurring').reduce((sum, e) => sum + e.amount, 0);
-                const projectedMonthlyExpense = state.entries.filter(e => e.type === 'expense' && e.status === 'Recurring').reduce((sum, e) => sum + e.amount, 0);
-                revenue += projectedMonthlyRevenue;
-                expenses += projectedMonthlyExpense;
-            }
-            
-            const netProfit = revenue - expenses;
+            const totalExpenses = view === 'Projected' ? projectedExpenses : expenses;
+            const netProfit = revenue - totalExpenses;
             const profitMargin = revenue > 0 ? netProfit / revenue : 0;
-            return { revenue, expenses, netProfit, profitMargin };
-        }
+            return { revenue, expenses: totalExpenses, netProfit, profitMargin };
+        };
         
-        function aggregateDataForRevenueChart(timespan) {
-            const now = new Date();
-            let interval, dateFormat;
+        const groupDataForChart = (timespan) => {
+            if (!state.entries.length) return { labels: [], revenue: [], expenses: [] };
             
-            if (timespan === 'Daily') {
-                interval = { start: subDays(now, 29), end: now };
-                dateFormat = 'MMM d';
-            } else if (timespan === 'Weekly') {
-                interval = { start: subWeeks(now, 11), end: now };
-                dateFormat = "'Week of' MMM d";
-            } else { // Monthly
-                interval = { start: subMonths(now, 11), end: now };
-                dateFormat = 'MMM yyyy';
+            const sortedEntries = [...state.entries].sort((a,b) => a.dateObj - b.dateObj);
+            const firstDate = sortedEntries[0].dateObj;
+            const lastDate = sortedEntries[sortedEntries.length - 1].dateObj;
+
+            let interval;
+            let formatString;
+
+            switch (timespan) {
+                case 'Daily':
+                    interval = eachDayOfInterval({ start: firstDate, end: lastDate });
+                    formatString = 'MMM d';
+                    break;
+                case 'Weekly':
+                    interval = eachWeekOfInterval({ start: firstDate, end: lastDate }, { weekStartsOn: 1 });
+                    formatString = "'Week of' MMM d";
+                    break;
+                default: // Monthly
+                    interval = eachMonthOfInterval({ start: startOfMonth(firstDate), end: lastDate });
+                    formatString = 'MMM yyyy';
+                    break;
             }
 
-            const getIntervals = {
-                Daily: eachDayOfInterval(interval),
-                Weekly: eachWeekOfInterval(interval, { weekStartsOn: 1 }),
-                Monthly: eachMonthOfInterval(interval)
-            };
+            const dataMap = new Map(interval.map(d => [format(d, formatString), { revenue: 0, expenses: 0 }]));
 
-            const labels = getIntervals[timespan].map(d => format(d, dateFormat));
-            const data = labels.map(() => ({ revenue: 0, expense: 0 }));
-
-            state.entries.forEach(entry => {
-                const entryDate = parseISO(entry.date);
-                const index = getIntervals[timespan].findIndex((d, i) => {
-                    const nextDate = getIntervals[timespan][i+1] || new Date(8640000000000000); // Far future date
-                    return entryDate >= d && entryDate < nextDate;
-                });
-
-                if (index !== -1) {
-                    if (entry.type === 'revenue') data[index].revenue += entry.amount;
-                    if (entry.type === 'expense') data[index].expense += entry.amount;
+            for (const entry of sortedEntries) {
+                let key;
+                if (timespan === 'Weekly') {
+                    key = format(startOfWeek(entry.dateObj, { weekStartsOn: 1 }), formatString);
+                } else if (timespan === 'Daily') {
+                    key = format(entry.dateObj, formatString);
+                } else { // Monthly
+                    key = format(startOfMonth(entry.dateObj), formatString);
                 }
-            });
 
-            return { labels, revenueData: data.map(d => d.revenue), expenseData: data.map(d => d.expense) };
-        }
+                if (dataMap.has(key)) {
+                    if (entry.type === 'revenue') {
+                        dataMap.get(key).revenue += entry.amount;
+                    } else if (entry.type === 'expense') {
+                        dataMap.get(key).expenses += entry.amount;
+                    }
+                }
+            }
+
+            return {
+                labels: Array.from(dataMap.keys()),
+                revenue: Array.from(dataMap.values()).map(v => v.revenue),
+                expenses: Array.from(dataMap.values()).map(v => v.expenses)
+            };
+        };
 
         // --- CHARTING FUNCTIONS ---
         const chartStyler = {
             getGridColor: () => state.theme === 'dark' ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.05)',
             getLabelColor: () => state.theme === 'dark' ? '#cbd5e1' : '#64748b',
         };
-        
-        function renderAllCharts() {
-            renderRevenueChart();
-            renderDailySalesChart();
-            renderSourcePieChart();
-        }
 
-        function renderRevenueChart() {
+        const renderRevenueChart = () => {
             const ctx = DOMElements.revenueLineChart.getContext('2d');
             if (state.chartInstances.revenue) state.chartInstances.revenue.destroy();
-
-            const { labels, revenueData, expenseData } = aggregateDataForRevenueChart(state.ui.revenueTimespan);
+            const { labels, revenue, expenses } = groupDataForChart(state.ui.revenueChartTimespan);
 
             state.chartInstances.revenue = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels,
                     datasets: [
-                        { label: 'Profit', data: revenueData, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 },
-                        { label: 'Loss', data: expenseData, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 }
+                        { label: 'Revenue', data: revenue, borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 },
+                        { label: 'Expenses', data: expenses, borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.1)', fill: true, tension: 0.4, pointRadius: 0, pointHoverRadius: 6, pointHitRadius: 20 }
                     ]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: {
-                        y: { ticks: { callback: value => `$${value / 1000}k`, color: chartStyler.getLabelColor() }, grid: { color: chartStyler.getGridColor() }, border: { dash: [4, 4], color: chartStyler.getGridColor() } },
-                        x: { ticks: { color: chartStyler.getLabelColor() }, grid: { display: false }, border: { color: chartStyler.getGridColor() } }
+                        y: { ticks: { color: chartStyler.getLabelColor(), callback: value => `$${value / 1000}k` }, grid: { color: chartStyler.getGridColor() }, border: { dash: [4, 4] } },
+                        x: { ticks: { color: chartStyler.getLabelColor() }, grid: { display: false } }
                     },
-                    plugins: { 
-                        legend: { display: false },
-                        tooltip: {
-                            enabled: false, // Disable default tooltip
-                            external: (context) => {
-                                let tooltipEl = document.getElementById('chartjs-tooltip');
-                                if (!tooltipEl) {
-                                    tooltipEl = document.createElement('div');
-                                    tooltipEl.id = 'chartjs-tooltip';
-                                    tooltipEl.className = 'chart-tooltip';
-                                    document.body.appendChild(tooltipEl);
-                                }
-                                const tooltipModel = context.tooltip;
-                                if (tooltipModel.opacity === 0) {
-                                    tooltipEl.style.opacity = 0;
-                                    return;
-                                }
-                                const title = tooltipModel.title || [];
-                                const dataPoints = tooltipModel.dataPoints || [];
-                                const series1 = dataPoints[0] ? `<div><span style="color:#3b82f6">●</span> series1: ${formatCurrency(dataPoints[0].raw)}</div>` : '';
-                                const series2 = dataPoints[1] ? `<div><span style="color:#ec4899">●</span> series2: ${formatCurrency(dataPoints[1].raw)}</div>` : '';
-                                tooltipEl.innerHTML = `
-                                    <div class="font-semibold mb-1">${title}</div>
-                                    ${series1}
-                                    ${series2}
-                                `;
-                                const position = context.chart.canvas.getBoundingClientRect();
-                                tooltipEl.style.opacity = 1;
-                                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
-                                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
-                            }
-                        } 
-                    }
+                    plugins: { legend: { display: true, position: 'top', labels: { color: chartStyler.getLabelColor()} }, tooltip: { mode: 'index', intersect: false } }
                 }
             });
         }
         
-        function renderDailySalesChart() {
+        const renderDailySalesChart = () => {
             const ctx = DOMElements.dailySalesBarChart.getContext('2d');
             if (state.chartInstances.dailySales) state.chartInstances.dailySales.destroy();
             
-            const days = eachDayOfInterval({ start: subDays(new Date(), 13), end: new Date() });
-            const labels = days.map(d => format(d, 'MMM d'));
-            const data = labels.map(label => {
-                const daySales = state.entries.filter(e => e.type === 'revenue' && format(parseISO(e.date), 'MMM d') === label)
-                                             .reduce((sum, e) => sum + e.amount, 0);
-                return daySales;
-            });
+            const salesData = groupDataForChart('Daily');
             
             state.chartInstances.dailySales = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels,
-                    datasets: [{ label: 'Sales', data, backgroundColor: '#a78bfa', borderRadius: 4 }]
+                    labels: salesData.labels,
+                    datasets: [{ label: 'Sales', data: salesData.revenue, backgroundColor: '#a78bfa', borderRadius: 4 }]
                 },
                 options: {
                      responsive: true, maintainAspectRatio: false,
-                     scales: { y: { display: false }, x: { grid: { display: false }, ticks: { color: chartStyler.getLabelColor() } } },
-                     plugins: { legend: { display: false }, tooltip: { displayColors: false } }
+                     scales: { 
+                         y: { ticks: { color: chartStyler.getLabelColor() }, grid: { color: chartStyler.getGridColor() } }, 
+                         x: { ticks: { color: chartStyler.getLabelColor() }, grid: { display: false } } 
+                     },
+                     plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${formatCurrency(c.raw)}` } } }
                 }
             });
         }
 
-        function renderSourcePieChart() {
+        const renderSourcePieChart = () => {
             const ctx = DOMElements.sourcePieChart.getContext('2d');
             if (state.chartInstances.sourcePie) state.chartInstances.sourcePie.destroy();
+            const sourceMap = state.entries.filter(e => e.type === 'revenue' && e.customerSource !== 'N/A').reduce((acc, e) => {
+                acc.set(e.customerSource, (acc.get(e.customerSource) || 0) + e.amount);
+                return acc;
+            }, new Map());
 
-            const sourceMap = new Map();
-            state.entries.filter(e => e.type === 'revenue' && e.customerSource !== 'N/A').forEach(e => {
-                sourceMap.set(e.customerSource, (sourceMap.get(e.customerSource) || 0) + e.amount);
-            });
-            const labels = Array.from(sourceMap.keys());
-            const data = Array.from(sourceMap.values());
-            
             state.chartInstances.sourcePie = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels,
-                    datasets: [{ data, backgroundColor: ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#facc15'], borderWidth: 0 }]
+                    labels: [...sourceMap.keys()],
+                    datasets: [{ data: [...sourceMap.values()], backgroundColor: ['#6366f1', '#ec4899', '#f97316', '#22c55e', '#facc15', '#38bdf8'], borderWidth: 0 }]
                 },
                 options: {
-                    responsive: true, maintainAspectRatio: false,
-                    cutout: '70%',
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, padding: 20, color: chartStyler.getLabelColor() } } }
+                    responsive: true, maintainAspectRatio: false, cutout: '70%',
+                    plugins: { legend: { position: 'bottom', labels: { color: chartStyler.getLabelColor(), boxWidth: 12, padding: 20 } }, tooltip: { callbacks: { label: (c) => `${c.label}: ${formatCurrency(c.raw)}` } } }
                 }
             });
         }
 
-        // --- RENDER FUNCTIONS ---
-        function render() {
+        // --- UI RENDER FUNCTIONS ---
+        const render = () => {
             renderTheme();
             renderStats();
             renderAllCharts();
-            renderBusinessSummary();
+            renderBusinessBreakdown();
             renderTransactionTable();
             saveState();
         }
+        
+        const renderAllCharts = () => {
+            renderRevenueChart();
+            renderDailySalesChart();
+            renderSourcePieChart();
+        }
 
-        function renderTheme() {
-            if (state.theme === 'dark') {
-                DOMElements.html.classList.add('dark');
-                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`;
-            } else {
-                DOMElements.html.classList.remove('dark');
-                DOMElements.themeToggle.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
-            }
+        const renderTheme = () => {
+            DOMElements.html.classList.toggle('dark', state.theme === 'dark');
+            DOMElements.themeToggle.innerHTML = state.theme === 'dark' 
+                ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`;
         }
         
-        function renderStats() {
-            const stats = calculateStats(state.ui.projectionMode);
+        const renderStats = () => {
+            const stats = calculateStats(state.ui.statsView);
+            DOMElements.statViewButtons.forEach(btn => {
+                btn.classList.toggle('bg-blue-600', btn.dataset.view === state.ui.statsView);
+                btn.classList.toggle('text-white', btn.dataset.view === state.ui.statsView);
+                btn.classList.toggle('bg-gray-100', btn.dataset.view !== state.ui.statsView);
+                btn.classList.toggle('dark:bg-gray-700', btn.dataset.view !== state.ui.statsView);
+            });
             DOMElements.statsGrid.innerHTML = `
                 <div class="bg-violet-100 dark:bg-violet-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-violet-800 dark:text-violet-300">Total Revenue</p><p class="text-2xl font-bold text-violet-900 dark:text-violet-100">${formatCurrency(stats.revenue)}</p></div>
-                <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-red-800 dark:text-red-300">Total Expenses</p><p class="text-2xl font-bold text-red-900 dark:text-red-100">${formatCurrency(stats.expenses)}</p></div>
+                <div class="bg-red-100 dark:bg-red-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-red-800 dark:text-red-300">${state.ui.statsView} Expenses</p><p class="text-2xl font-bold text-red-900 dark:text-red-100">${formatCurrency(stats.expenses)}</p></div>
                 <div class="bg-blue-100 dark:bg-blue-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-blue-800 dark:text-blue-300">Net Profit</p><p class="text-2xl font-bold text-blue-900 dark:text-blue-100">${formatCurrency(stats.netProfit)}</p></div>
                 <div class="bg-green-100 dark:bg-green-900/50 p-4 rounded-xl shadow-md"><p class="text-sm text-green-800 dark:text-green-300">Profit Margin</p><p class="text-2xl font-bold text-green-900 dark:text-green-100">${formatPercent(stats.profitMargin)}</p></div>
             `;
         }
-        
-        function renderBusinessSummary() {
-            const summary = state.entries.reduce((acc, entry) => {
-                if (!acc[entry.business]) {
-                    acc[entry.business] = { revenue: 0, expense: 0 };
+
+        const renderBusinessBreakdown = () => {
+            const breakdown = state.entries.reduce((acc, entry) => {
+                if(!acc[entry.business]) {
+                    acc[entry.business] = { revenue: 0, expenses: 0 };
                 }
                 if (entry.type === 'revenue') acc[entry.business].revenue += entry.amount;
-                else acc[entry.business].expense += entry.amount;
+                if (entry.type === 'expense') acc[entry.business].expenses += entry.amount;
                 return acc;
             }, {});
 
-            const icons = {
-                'Web Design': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>`, color: 'bg-blue-100 text-blue-600' },
-                'SEO': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>`, color: 'bg-green-100 text-green-600' },
-                'Photography': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>`, color: 'bg-purple-100 text-purple-600' },
-                'Software': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`, color: 'bg-pink-100 text-pink-600' },
-                'Overhead': { icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 2v6h6M21.5 22v-6h-6"/><path d="M22 11.5A10 10 0 0 0 3.5 12.5"/><path d="M2 12.5a10 10 0 0 0 18.5-1"/></svg>`, color: 'bg-red-100 text-red-600' },
-            };
-
-            DOMElements.businessSummaryContainer.innerHTML = Object.entries(summary).map(([business, data]) => {
-                const { icon, color } = icons[business] || { icon: '?', color: 'bg-gray-100 text-gray-600' };
-                return `
-                    <div class="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ${color}">${icon}</div>
-                            <div>
-                                <div class="font-bold text-gray-800 dark:text-gray-100">${business}</div>
-                                <div class="text-sm text-gray-500">${data.revenue > 0 ? `Revenue: ${formatCurrency(data.revenue)}` : `Expense: ${formatCurrency(data.expense)}`}</div>
+            let content = `<h2 class="text-xl font-bold text-gray-800 dark:text-white mb-4">Business Breakdown</h2><div class="space-y-3 overflow-y-auto max-h-40 pr-2">`;
+            if (Object.keys(breakdown).length === 0) {
+                 content += `<p class="text-gray-500">No data available.</p>`;
+            } else {
+                 for(const business in breakdown) {
+                    content += `
+                        <div>
+                            <p class="font-semibold text-gray-700 dark:text-gray-200">${business}</p>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-green-600">Revenue: ${formatCurrency(breakdown[business].revenue)}</span>
+                                <span class="text-red-600">Expenses: ${formatCurrency(breakdown[business].expenses)}</span>
                             </div>
                         </div>
-                        <div class="font-bold text-right ${data.revenue > data.expense ? 'text-green-500' : 'text-red-500'}">
-                            ${formatCurrency(data.revenue - data.expense)}
-                        </div>
-                    </div>
-                `;
-            }).join('');
+                    `;
+                 }
+            }
+            content += `</div>`;
+            DOMElements.businessBreakdownContainer.innerHTML = content;
         }
         
-        function renderTransactionTable() {
-            // Sorting
+        const renderTransactionTable = () => {
             const { key, order } = state.ui.sort;
-            const sortedEntries = [...state.entries].sort((a, b) => {
-                const valA = a[key];
-                const valB = b[key];
-                let comparison = 0;
-                if (key === 'netAmount') {
-                    const netA = a.amount - a.fulfillmentExpense;
-                    const netB = b.amount - b.fulfillmentExpense;
-                    comparison = netA > netB ? 1 : -1;
-                } else if (typeof valA === 'string') {
-                    comparison = valA.localeCompare(valB);
-                } else if (typeof valA === 'number') {
-                    comparison = valA > valB ? 1 : -1;
-                } else { // Dates
-                     comparison = parseISO(valA) > parseISO(valB) ? 1 : -1;
-                }
-                return order === 'asc' ? comparison : -comparison;
-            });
+            const sortedEntries = [...state.entries]
+                .filter(e => state.ui.activeTableTab === 'all' || e.type === state.ui.activeTableTab)
+                .sort((a, b) => {
+                    let valA, valB;
+                    if (key === 'netProfit') {
+                         valA = a.type === 'revenue' ? a.amount - a.fulfillmentExpense : 0;
+                         valB = b.type === 'revenue' ? b.amount - b.fulfillmentExpense : 0;
+                    } else if (key === 'netMargin') {
+                         valA = a.type === 'revenue' && a.amount > 0 ? (a.amount - a.fulfillmentExpense) / a.amount : 0;
+                         valB = b.type === 'revenue' && b.amount > 0 ? (b.amount - b.fulfillmentExpense) / b.amount : 0;
+                    } else {
+                        valA = a[key];
+                        valB = b[key];
+                    }
+                    if (valA < valB) return order === 'asc' ? -1 : 1;
+                    if (valA > valB) return order === 'asc' ? 1 : -1;
+                    return 0;
+                });
             
-            const tableEntries = sortedEntries.filter(e => state.ui.activeTableTab === 'all' || e.type === state.ui.activeTableTab);
             const tableHTML = `
-                <div class="flex flex-wrap justify-between items-center mb-4">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
                     <h2 class="text-xl font-bold text-gray-800 dark:text-white">Recent Activity</h2>
                     <div class="flex items-center border border-gray-200 dark:border-gray-700 rounded-lg p-1 space-x-1">
-                        <button class="table-tab-btn ${state.ui.activeTableTab === 'all' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="all">All</button>
-                        <button class="table-tab-btn ${state.ui.activeTableTab === 'revenue' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="revenue">Revenue</button>
-                        <button class="table-tab-btn ${state.ui.activeTableTab === 'expense' ? 'bg-gray-100 dark:bg-gray-700' : ''}" data-tab="expense">Expense</button>
+                        ${['all', 'revenue', 'expense'].map(tab => `<button class="table-tab-btn ${state.ui.activeTableTab === tab ? 'bg-gray-100 dark:bg-gray-600' : ''}" data-tab="${tab}">${tab.charAt(0).toUpperCase() + tab.slice(1)}</button>`).join('')}
                     </div>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead><tr class="text-sm text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
-                            <th class="p-3 font-semibold sortable" data-sort="itemName">Customer/Item<span class="sort-icon"></span></th>
-                            <th class="p-3 font-semibold sortable" data-sort="netAmount">Net Amount<span class="sort-icon"></span></th>
-                            <th class="p-3 font-semibold sortable" data-sort="amount">Gross Amount<span class="sort-icon"></span></th>
-                            <th class="p-3 font-semibold sortable" data-sort="status">Status<span class="sort-icon"></span></th>
+                            ${renderHeader('itemName', 'Customer/Item')}
+                            ${renderHeader('amount', 'Amount')}
+                            ${renderHeader('netProfit', 'Net Profit')}
+                            ${renderHeader('netMargin', 'Net Margin')}
+                            ${renderHeader('date', 'Date')}
+                            ${renderHeader('status', 'Status')}
                             <th class="p-3 font-semibold">Actions</th>
                         </tr></thead>
-                        <tbody>${tableEntries.length > 0 ? tableEntries.map(renderTransactionRow).join('') : `<tr><td colspan="6" class="text-center p-8 text-gray-500">No transactions to show.</td></tr>`}</tbody>
+                        <tbody>${sortedEntries.length > 0 ? sortedEntries.map(renderTransactionRow).join('') : `<tr><td colspan="7" class="text-center p-8 text-gray-500">No transactions to show.</td></tr>`}</tbody>
                     </table>
                 </div>`;
             DOMElements.transactionTableContainer.innerHTML = tableHTML;
             // Re-attach listeners
             DOMElements.transactionTableContainer.querySelectorAll('.table-tab-btn').forEach(btn => btn.addEventListener('click', handleTabClick));
-            DOMElements.transactionTableContainer.querySelectorAll('.action-btn').forEach(btn => btn.addEventListener('click', handleActionClick));
-            DOMElements.transactionTableContainer.querySelectorAll('.sortable').forEach(th => {
-                th.addEventListener('click', handleSortClick);
-                if (th.dataset.sort === key) {
-                    th.classList.add(order);
-                    th.querySelector('.sort-icon').innerHTML = order === 'asc' ? '▲' : '▼';
-                } else {
-                    th.querySelector('.sort-icon').innerHTML = '◆';
-                }
-            });
+            DOMElements.transactionTableContainer.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', handleDeleteClick));
+            DOMElements.transactionTableContainer.querySelectorAll('th.sortable').forEach(th => th.addEventListener('click', handleSortClick));
         }
 
-        function renderTransactionRow(entry) {
+        const renderHeader = (key, title) => {
+            const { key: currentKey, order } = state.ui.sort;
+            const isCurrent = currentKey === key;
+            const sortClass = isCurrent ? `sort-${order}` : '';
+            const indicator = isCurrent && order === 'asc' ? '▲' : '▼';
+            return `<th class="p-3 font-semibold sortable ${sortClass}" data-sort-key="${key}">
+                <span class="flex items-center gap-2">${title} <span class="sort-indicator">${indicator}</span></span>
+            </th>`;
+        }
+
+        const renderTransactionRow = (entry) => {
             const statusColors = { 'Recurring': 'bg-green-100 text-green-800 dark:bg-green-900/60 dark:text-green-300', 'New Customer': 'bg-blue-100 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300', 'Warm Lead': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/60 dark:text-yellow-300', 'Cold Lead': 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300' };
-            const avatarColor = (name = 'X') => { const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500']; return colors[name.charCodeAt(0) % colors.length]; }
-            const netAmount = entry.amount - (entry.fulfillmentExpense || 0);
-            return `<tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50">
-                <td class="p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold ${avatarColor(entry.itemName)}">${(entry.itemName || 'X').charAt(0).toUpperCase()}</div><div><div class="font-bold text-gray-800 dark:text-gray-100">${entry.itemName}</div><div class="text-sm text-gray-500">${format(parseISO(entry.date), 'MMM d, yyyy')}</div></div></div></td>
-                <td class="p-3 font-bold ${netAmount >= 0 ? 'text-green-600' : 'text-red-600'}">${formatCurrency(netAmount)}</td>
-                <td class="p-3 text-gray-600 dark:text-gray-300">${formatCurrency(entry.amount)}</td>
+            const avatarColor = (name = 'X') => { const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-red-500', 'bg-yellow-500']; return colors[name.charCodeAt(0) % colors.length]; };
+            const netProfit = entry.type === 'revenue' ? entry.amount - entry.fulfillmentExpense : null;
+            const netMargin = entry.type === 'revenue' && entry.amount > 0 ? (netProfit / entry.amount) : null;
+
+            return `<tr class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <td class="p-3"><div class="flex items-center gap-3"><div class="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold ${avatarColor(entry.itemName)}">${(entry.itemName || 'X').charAt(0).toUpperCase()}</div><div><div class="font-bold text-gray-800 dark:text-gray-100">${entry.itemName}</div><div class="text-sm text-gray-500">${entry.business} | ${entry.customerSource}</div></div></div></td>
+                <td class="p-3 font-bold ${entry.type === 'revenue' ? 'text-green-500' : 'text-red-500'}">${formatCurrency(entry.amount)}</td>
+                <td class="p-3 text-gray-600 dark:text-gray-300">${netProfit !== null ? formatCurrency(netProfit) : 'N/A'}</td>
+                <td class="p-3 text-gray-600 dark:text-gray-300">${netMargin !== null ? formatPercent(netMargin) : 'N/A'}</td>
+                <td class="p-3 text-gray-600 dark:text-gray-300">${format(entry.dateObj, 'MMM d, yyyy')}</td>
                 <td class="p-3"><span class="px-2.5 py-1 text-xs font-semibold rounded-full ${statusColors[entry.status] || ''}">${entry.status}</span></td>
-                <td class="p-3"><div class="flex items-center space-x-2">
-                    ${entry.phone ? `<button class="text-gray-400 hover:text-green-500 action-btn" data-id="${entry.id}" data-action="whatsapp" title="WhatsApp"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M16.75 13.96c.25.13.41.2.52.28.11.08.23.18.23.34a.48.48 0 01-.06.24c-.05.09-.1.15-.12.18-.03.03-.06.06-.09.08s-.06.05-.09.08a.5.5 0 01-.18.12c-.06.03-.12.06-.2.09-.07.03-.15.06-.23.09-.08.03-.17.06-.28.09-.1.03-.22.05-.34.06a2.3 2.3 0 01-.5.06h-.14c-.16 0-.33-.02-.5-.06a4.2 4.2 0 01-1.04-.34 6.4 6.4 0 01-1.5-.78 8.4 8.4 0 01-1.74-1.35c-.4-.52-.73-1-1-1.5-.25-.52-.42-1-.52-1.41-.03-.12-.05-.24-.06-.37s0-.25.02-.37a.8.8 0 01.12-.34c.05-.08.1-.15.18-.21.07-.06.14-.1.2-.13.03-.01.05-.03.06-.04a.3.3 0 01.12-.06c.06-.01.12 0 .18.01.06 0 .12.03.18.06.06.03.1.06.14.09.04.03.06.06.09.08.03.02.05.04.06.06.03.03.05.06.06.09s.03.05.03.08a.2.2 0 010 .12.3.3 0 01-.03.11c-.02.03-.03.06-.06.09l-.28.34c-.1.13-.15.2-.15.21a.1.1 0 000 .09c.01.03.03.06.06.09.28.41.63.78 1.04 1.1.4.34.8.6 1.2.77.06.03.1.06.14.08.04.02.06.03.09.03h.09c.03 0 .06-.01.09-.03l.34-.41c.03-.03.06-.06.09-.08a.3.3 0 01.18-.06.4.4 0 01.21.03c.06.03.12.06.15.09s.06.06.09.09a.5.5 0 01.12.18c.03.06.06.12.08.2zM12 2a10 10 0 100 20 10 10 0 000-20zm0 18.5a8.5 8.5 0 110-17 8.5 8.5 0 010 17z"/></svg></button>` : ''}
-                    ${entry.type === 'revenue' ? `<button class="text-gray-400 hover:text-blue-500 action-btn" data-id="${entry.id}" data-action="invoice" title="Create Invoice"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>` : ''}
-                    <button class="text-gray-400 hover:text-red-500 action-btn" data-id="${entry.id}" data-action="delete" title="Delete"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>
-                </div></td>
+                <td class="p-3"><button class="text-gray-400 hover:text-red-500 delete-btn" data-id="${entry.id}"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button></td>
             </tr>`;
         }
 
-        function renderModalForm() {
+        const renderModalForm = () => {
             const formFields = [
-                { name: 'type', label: 'Type', type: 'select', options: ['revenue', 'expense'] },
-                { name: 'date', label: 'Date', type: 'date' },
-                { name: 'itemName', label: 'Customer/Item Name', placeholder: 'e.g., John Doe' },
-                { name: 'phone', label: 'Phone (Optional)', type: 'tel', placeholder: '1234567890' },
-                { name: 'business', label: 'Business', placeholder: 'e.g., Web Design' },
-                { name: 'amount', label: 'Amount ($)', type: 'number', placeholder: '1500.00' },
-                { name: 'fulfillmentExpense', label: 'Est. Fulfillment Cost ($)', type: 'number', placeholder: '250.00' },
-                { name: 'sector', label: 'Sector / Tag', placeholder: 'e.g., Services, Marketing' },
-                { name: 'customerSource', label: 'Customer Source', placeholder: 'e.g., Referral, Google Ads' },
-                { name: 'status', label: 'Status', type: 'select', options: ['New Customer', 'Warm Lead', 'Cold Lead', 'Recurring', 'N/A'] },
+                { name: 'type', label: 'Type', type: 'select', options: ['revenue', 'expense'] }, { name: 'date', label: 'Date', type: 'date' },
+                { name: 'itemName', label: 'Customer/Item Name', placeholder: 'e.g., John Doe' }, { name: 'business', label: 'Business', placeholder: 'e.g., Web Design' },
+                { name: 'amount', label: 'Amount ($)', type: 'number', placeholder: '1500.00' }, { name: 'fulfillmentExpense', label: 'Fulfillment Cost ($)', type: 'number', placeholder: '250.00', note: 'Actual cost to deliver a service.' },
+                { name: 'projectedExpense', label: 'Projected Expense ($)', type: 'number', placeholder: '300.00', note: 'Estimated future cost.' }, { name: 'customerSource', label: 'Customer Source', placeholder: 'e.g., Referral, Google Ads' },
+                { name: 'status', label: 'Status', type: 'select', options: ['New Customer', 'Warm Lead', 'Cold Lead', 'Recurring', 'Actual', 'Projected', 'N/A'] },
                 { name: 'notes', label: 'Notes (Optional)', type: 'textarea' }
             ];
             
@@ -641,37 +541,25 @@
                     ${formFields.map(f => `<div class="${f.type === 'textarea' ? 'md:col-span-2' : ''}">${renderFormField(f)}</div>`).join('')}
                 </div>
                 <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" class="modal-cancel px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Save Transaction</button>
+                    <button type="button" class="modal-cancel px-5 py-2.5 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-100 dark:hover:bg-gray-500 font-semibold">Cancel</button>
+                    <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold">Save Transaction</button>
                 </div>`;
             DOMElements.addEntryModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, false));
         }
         
-        function renderFormField(field) {
+        const renderFormField = (field) => {
             const baseInputClass = "mt-1 block w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm";
-            const labelHTML = `<label for="${field.name}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">${field.label}</label>`;
-            if (field.type === 'select') {
-                return `${labelHTML}<select name="${field.name}" id="${field.name}" class="${baseInputClass}">${field.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
-            } else if (field.type === 'textarea') {
-                return `${labelHTML}<textarea name="${field.name}" id="${field.name}" rows="2" class="${baseInputClass}" placeholder="${field.placeholder || ''}"></textarea>`;
-            } else {
-                return `${labelHTML}<input type="${field.type || 'text'}" name="${field.name}" id="${field.name}" class="${baseInputClass}" placeholder="${field.placeholder || ''}" ${field.type === 'date' ? `value="${format(new Date(), 'yyyy-MM-dd')}"` : ''} ${field.name === 'amount' ? 'required' : ''}>`;
-            }
+            const labelHTML = `<label for="${field.name}" class="block text-sm font-medium text-gray-700 dark:text-gray-300">${field.label}</label>${field.note ? `<p class="text-xs text-gray-500 dark:text-gray-400">${field.note}</p>` : ''}`;
+            if (field.type === 'select') return `${labelHTML}<select name="${field.name}" id="${field.name}" class="${baseInputClass}">${field.options.map(o => `<option value="${o}">${o}</option>`).join('')}</select>`;
+            if (field.type === 'textarea') return `${labelHTML}<textarea name="${field.name}" id="${field.name}" rows="2" class="${baseInputClass}"></textarea>`;
+            return `${labelHTML}<input type="${field.type || 'text'}" name="${field.name}" id="${field.name}" class="${baseInputClass}" placeholder="${field.placeholder || ''}" ${field.type === 'date' ? `value="${format(new Date(), 'yyyy-MM-dd')}"` : ''} required>`;
         }
         
         // --- EVENT HANDLERS ---
-        function toggleTheme() {
-            state.theme = state.theme === 'light' ? 'dark' : 'light';
-            render();
-        }
-
-        function handleTabClick(e) {
-            state.ui.activeTableTab = e.target.dataset.tab;
-            renderTransactionTable();
-        }
-        
-        function handleSortClick(e) {
-            const newKey = e.currentTarget.dataset.sort;
+        const toggleTheme = () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; render(); }
+        const handleTabClick = (e) => { state.ui.activeTableTab = e.target.dataset.tab; renderTransactionTable(); }
+        const handleSortClick = (e) => {
+            const newKey = e.currentTarget.dataset.sortKey;
             if (state.ui.sort.key === newKey) {
                 state.ui.sort.order = state.ui.sort.order === 'asc' ? 'desc' : 'asc';
             } else {
@@ -680,154 +568,40 @@
             }
             renderTransactionTable();
         }
-
-        function handleActionClick(e) {
-            const id = e.currentTarget.dataset.id;
-            const action = e.currentTarget.dataset.action;
-            state.itemForAction = state.entries.find(entry => entry.id === id);
-            
-            if (action === 'delete') {
-                toggleModal(DOMElements.deleteModal.modal, true);
-            } else if (action === 'whatsapp') {
-                const customerName = state.itemForAction.itemName.split(' ')[0];
-                DOMElements.whatsappModal.phoneInput.value = state.itemForAction.phone;
-                DOMElements.whatsappModal.messageInput.value = `Hi ${customerName}, just following up on...`;
-                toggleModal(DOMElements.whatsappModal.modal, true);
-            } else if (action === 'invoice') {
-                renderInvoiceForm(state.itemForAction);
-                toggleModal(DOMElements.invoiceModal.modal, true);
-            }
-        }
-
-        function confirmDelete() {
-            state.entries = state.entries.filter(entry => entry.id !== state.itemForAction.id);
-            state.itemForAction = null;
+        const handleDeleteClick = (e) => { state.itemToDelete = e.currentTarget.dataset.id; toggleModal(DOMElements.deleteModal.modal, true); }
+        const confirmDelete = () => {
+            state.entries = state.entries.filter(entry => entry.id !== state.itemToDelete);
+            state.itemToDelete = null;
             toggleModal(DOMElements.deleteModal.modal, false);
             render();
         }
-
-        function handleFormSubmit(e) {
+        const handleFormSubmit = (e) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const data = Object.fromEntries(formData.entries());
-            
             if (!data.amount || !data.itemName) {
                 DOMElements.addEntryModal.error.textContent = 'Please fill out at least the item name and amount.';
                 DOMElements.addEntryModal.error.classList.remove('hidden');
                 return;
             }
-            
-            const newEntry = { id: crypto.randomUUID(), ...data, amount: parseFloat(data.amount), fulfillmentExpense: parseFloat(data.fulfillmentExpense || 0) };
+            const newEntry = { id: crypto.randomUUID(), ...data, amount: parseFloat(data.amount), fulfillmentExpense: parseFloat(data.fulfillmentExpense || 0), projectedExpense: parseFloat(data.projectedExpense || 0), dateObj: parseISO(data.date) };
             state.entries.unshift(newEntry);
             toggleModal(DOMElements.addEntryModal.modal, false);
             render();
         }
+        const handleRevenueTimespanChange = (e) => { state.ui.revenueChartTimespan = e.target.value; renderRevenueChart(); }
+        const handleStatViewToggle = (e) => { state.ui.statsView = e.target.dataset.view; renderStats(); }
 
-        function toggleModal(modalElement, show) {
-            if (show) {
-                modalElement.style.display = 'flex';
-                if(modalElement.id === 'add-entry-modal'){
-                    DOMElements.addEntryModal.error.classList.add('hidden');
-                    renderModalForm();
-                }
-            } else {
-                modalElement.style.display = 'none';
+        const toggleModal = (modalElement, show) => {
+            modalElement.style.display = show ? 'flex' : 'none';
+            if(show && modalElement.id === 'add-entry-modal'){
+                DOMElements.addEntryModal.error.classList.add('hidden');
+                renderModalForm();
             }
         }
-
-        function handleRevenueTimespanChange(e) {
-            state.ui.revenueTimespan = e.target.value;
-            renderRevenueChart();
-        }
         
-        function handleProjectionTabClick(e) {
-            const mode = e.currentTarget.dataset.mode;
-            state.ui.projectionMode = mode;
-            DOMElements.projectionTabs.querySelectorAll('.projection-tab-btn').forEach(btn => {
-                btn.classList.remove('bg-gray-100', 'dark:bg-gray-700');
-            });
-            e.currentTarget.classList.add('bg-gray-100', 'dark:bg-gray-700');
-            renderStats();
-        }
-        
-        // --- FEATURE FUNCTIONS: WHATSAPP & INVOICE ---
-        function handleWhatsappSubmit(e) {
-            e.preventDefault();
-            const phone = DOMElements.whatsappModal.phoneInput.value;
-            const message = encodeURIComponent(DOMElements.whatsappModal.messageInput.value);
-            window.open(`https://wa.me/${phone}?text=${message}`, '_blank');
-            toggleModal(DOMElements.whatsappModal.modal, false);
-        }
-
-        function renderInvoiceForm(entry) {
-            DOMElements.invoiceModal.form.innerHTML = `
-                <input type="hidden" name="id" value="${entry.id}">
-                <div class="grid grid-cols-2 gap-4">
-                    <div><label class="block text-sm font-medium">From</label><input name="from_name" class="form-input" value="My Company Inc."></div>
-                    <div><label class="block text-sm font-medium">To</label><input name="to_name" class="form-input" value="${entry.itemName}"></div>
-                    <div><label class="block text-sm font-medium">Invoice #</label><input name="invoice_num" class="form-input" value="${'INV-' + new Date().getFullYear() + '-' + Math.floor(Math.random() * 1000)}"></div>
-                    <div><label class="block text-sm font-medium">Date</label><input name="invoice_date" type="date" class="form-input" value="${format(new Date(), 'yyyy-MM-dd')}"></div>
-                </div>
-                <hr class="my-4 dark:border-gray-600">
-                <div id="invoice-items">
-                    <div class="flex gap-4 items-end">
-                        <div class="flex-grow"><label class="block text-sm font-medium">Description</label><input name="item_desc" class="form-input" value="${entry.notes || entry.business + ' Services'}"></div>
-                        <div class="w-24"><label class="block text-sm font-medium">Qty</label><input name="item_qty" type="number" class="form-input" value="1"></div>
-                        <div class="w-32"><label class="block text-sm font-medium">Unit Price</label><input name="item_price" type="number" class="form-input" value="${entry.amount}"></div>
-                    </div>
-                </div>
-                 <div class="text-right mt-4 font-bold text-lg">Total: <span id="invoice-total">${formatCurrency(entry.amount)}</span></div>
-                 <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" class="modal-cancel px-4 py-2 bg-gray-200 rounded-md">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md">Download Invoice</button>
-                </div>
-                <style>.form-input { display: block; width: 100%; padding: 0.5rem; margin-top: 0.25rem; border-radius: 0.375rem; background-color: rgb(249 250 251); border: 1px solid rgb(209 213 219); } .dark .form-input { background-color: rgb(55 65 81); border-color: rgb(75 85 99); }</style>
-            `;
-            DOMElements.invoiceModal.form.querySelector('.modal-cancel').addEventListener('click', () => toggleModal(DOMElements.invoiceModal.modal, false));
-        }
-
-        function handleInvoiceSubmit(e) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const data = Object.fromEntries(formData.entries());
-            const total = data.item_qty * data.item_price;
-
-            const invoiceHTML = `
-                <html><head><title>Invoice ${data.invoice_num}</title><script src="https://cdn.tailwindcss.com"></script></head>
-                <body class="font-sans p-8 bg-gray-100"><div class="max-w-4xl mx-auto bg-white p-10 rounded-lg shadow-xl">
-                    <div class="flex justify-between items-start mb-10">
-                        <div><h1 class="text-4xl font-bold text-gray-800">INVOICE</h1><p class="text-gray-500">#${data.invoice_num}</p></div>
-                        <div class="text-right"><h2 class="text-2xl font-semibold">${data.from_name}</h2><p>123 Main St, Anytown, USA</p></div>
-                    </div>
-                    <div class="flex justify-between mb-10">
-                        <div><p class="font-bold text-gray-600">Bill To:</p><p>${data.to_name}</p></div>
-                        <div class="text-right"><p><span class="font-bold text-gray-600">Date:</span> ${format(parseISO(data.invoice_date), 'MMM d, yyyy')}</p></div>
-                    </div>
-                    <table class="w-full text-left mb-10">
-                        <thead class="bg-gray-100"><tr class="text-gray-600">
-                            <th class="p-3 font-semibold">Description</th><th class="p-3 font-semibold text-center">Qty</th>
-                            <th class="p-3 font-semibold text-right">Unit Price</th><th class="p-3 font-semibold text-right">Total</th>
-                        </tr></thead>
-                        <tbody><tr class="border-b"><td class="p-3">${data.item_desc}</td><td class="p-3 text-center">${data.item_qty}</td>
-                            <td class="p-3 text-right">${formatCurrency(data.item_price)}</td><td class="p-3 text-right">${formatCurrency(total)}</td></tr>
-                        </tbody>
-                    </table>
-                    <div class="text-right"><p class="text-gray-500">Subtotal</p><p class="text-2xl font-bold">${formatCurrency(total)}</p></div>
-                    <div class="mt-16 text-center text-gray-500 text-sm"><p>Thank you for your business!</p></div>
-                </div></body></html>
-            `;
-            
-            const blob = new Blob([invoiceHTML], { type: 'text/html' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `Invoice-${data.invoice_num}.html`;
-            link.click();
-            URL.revokeObjectURL(link.href);
-            toggleModal(DOMElements.invoiceModal.modal, false);
-        }
-
         // --- INITIALIZATION ---
-        function init() {
+        const init = () => {
             loadState();
             DOMElements.themeToggle.addEventListener('click', toggleTheme);
             DOMElements.addEntryButton.addEventListener('click', () => toggleModal(DOMElements.addEntryModal.modal, true));
@@ -835,12 +609,9 @@
             DOMElements.addEntryModal.form.addEventListener('submit', handleFormSubmit);
             DOMElements.deleteModal.confirmButton.addEventListener('click', confirmDelete);
             DOMElements.deleteModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.deleteModal.modal, false));
-            DOMElements.revenueTimespanSelect.addEventListener('change', handleRevenueTimespanChange);
-            DOMElements.projectionTabs.querySelectorAll('.projection-tab-btn').forEach(btn => btn.addEventListener('click', handleProjectionTabClick));
-            DOMElements.whatsappModal.form.addEventListener('submit', handleWhatsappSubmit);
-            DOMElements.whatsappModal.cancelButton.addEventListener('click', () => toggleModal(DOMElements.whatsappModal.modal, false));
-            DOMElements.invoiceModal.form.addEventListener('submit', handleInvoiceSubmit);
-
+            DOMElements.revenueTimespan.addEventListener('change', handleRevenueTimespanChange);
+            DOMElements.statViewButtons.forEach(btn => btn.addEventListener('click', handleStatViewToggle));
+            
             setTimeout(() => {
                 DOMElements.loader.style.display = 'none';
                 DOMElements.dashboardContent.classList.remove('hidden');
